@@ -1,25 +1,14 @@
+#include "main.h"
+
 #include <climits>
-#include <fstream>
-#include <iostream>
 #include <sstream>
 
-int main(int argc, char *argv[])
+int Answer(std::ifstream &file)
 {
-    if (argc == 1)
-    {
-        std::cout << "Usage: " << argv[0] << " input" << std::endl;
-        return 1;
-    }
-
-    std::ifstream file(argv[1]);
-    if (!file.is_open())
-    {
-        return 2;
-    }
-
     int increased = 0;
     int previous = INT_MAX;
     std::string line;
+
     while (std::getline(file, line))
     {
         std::stringstream ss(line);
@@ -31,8 +20,6 @@ int main(int argc, char *argv[])
         }
         previous = depth;
     }
-    std::cout << increased << std::endl;
 
-    file.close();
-    return 0;
+    return increased;
 }
