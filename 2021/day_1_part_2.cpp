@@ -1,4 +1,3 @@
-#include <climits>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -19,8 +18,6 @@ int main(int argc, char *argv[])
     }
 
     int increased = 0;
-    int previous = INT_MAX;
-    int sum = 0;
     std::queue<int> measurements;
     bool is_full = false;
     std::string line;
@@ -33,25 +30,18 @@ int main(int argc, char *argv[])
         if (!is_full)
         {
             measurements.push(depth);
-            sum += depth;
-            if (measurements.size() < 3)
+            if (measurements.size() == 3)
             {
-                continue;
+                is_full = true;
             }
-            is_full = true;
+            continue;
         }
-        else
-        {
-            sum -= measurements.front();
-            measurements.push(depth);
-            measurements.pop();
-            sum += depth;
-        }
-        if (sum > previous)
+        if (depth > measurements.front())
         {
             increased++;
         }
-        previous = sum;
+        measurements.push(depth);
+        measurements.pop();
     }
 
     std::cout << increased << std::endl;
