@@ -1,19 +1,15 @@
 #include "main.h"
 
 #include <climits>
-#include <sstream>
 
 int Answer(std::ifstream &file)
 {
     int increased = 0;
+    int depth = 0;
     int previous = INT_MAX;
-    std::string line;
 
-    while (std::getline(file, line))
+    while (file >> depth)
     {
-        std::stringstream ss(line);
-        int depth;
-        ss >> depth;
         if (depth > previous)
         {
             increased++;
