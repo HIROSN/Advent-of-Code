@@ -32,7 +32,7 @@ int Answer(std::ifstream &file)
 
     for (int bit = 0; bit < number_of_bits; bit++)
     {
-        gamma[bit] = count[bit][1] > count[bit][0];
+        gamma[bit] = count[bit][1] >= count[bit][0];
         epsilon[bit] = count[bit][1] < count[bit][0];
     }
 
