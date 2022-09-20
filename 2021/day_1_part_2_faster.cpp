@@ -3,7 +3,7 @@
 #include <iterator>
 #include <vector>
 
-int Answer(std::ifstream &file)
+uint64_t Answer(std::ifstream &file)
 {
     int increased = 0;
     std::vector<int> measurements(std::istream_iterator<int>(file), {});

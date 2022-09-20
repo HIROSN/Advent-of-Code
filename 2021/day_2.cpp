@@ -1,6 +1,6 @@
 #include "main.h"
 
-int Answer(std::ifstream &file)
+uint64_t Answer(std::ifstream &file)
 {
     std::string command;
     int units = 0;

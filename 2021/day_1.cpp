@@ -2,7 +2,7 @@
 
 #include <climits>
 
-int Answer(std::ifstream &file)
+uint64_t Answer(std::ifstream &file)
 {
     int increased = 0;
     int depth = 0;

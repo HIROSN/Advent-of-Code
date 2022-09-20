@@ -1,7 +1,9 @@
+#include <cstdint>
 #include <fstream>
 #include <iostream>
+#include <string>
 
-int Answer(std::ifstream &file);
+uint64_t Answer(std::ifstream &file);
 
 int main(int argc, char *argv[])
 {

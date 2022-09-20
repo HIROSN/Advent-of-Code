@@ -6,7 +6,7 @@
 #include <sstream>
 #include <vector>
 
-int Answer(std::ifstream &file)
+uint64_t Answer(std::ifstream &file)
 {
     std::string line;
     std::getline(file, line);

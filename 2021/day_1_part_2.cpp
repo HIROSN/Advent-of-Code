@@ -3,7 +3,7 @@
 #include <sstream>
 #include <queue>
 
-int Answer(std::ifstream &file)
+uint64_t Answer(std::ifstream &file)
 {
     int increased = 0;
     std::queue<int> measurements;

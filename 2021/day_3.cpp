@@ -3,7 +3,7 @@
 #include <bitset>
 #include <sstream>
 
-int Answer(std::ifstream &file)
+uint64_t Answer(std::ifstream &file)
 {
     constexpr int max_number_of_bits = 12;
     int count[max_number_of_bits][2] = {};

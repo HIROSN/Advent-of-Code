@@ -4,7 +4,7 @@
 #include <iterator>
 #include <vector>
 
-int Answer(std::ifstream &file)
+uint64_t Answer(std::ifstream &file)
 {
     int increased = 0;
     int previous = INT_MAX;

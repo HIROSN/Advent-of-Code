@@ -5,7 +5,7 @@
 #include <map>
 #include <utility>
 
-int Answer(std::ifstream &file)
+uint64_t Answer(std::ifstream &file)
 {
     std::string start, arrow, end;
     int x1, y1, x2, y2;

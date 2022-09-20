@@ -11,7 +11,7 @@ using ReportType = std::vector<DiagnosticType>;
 bool MostCommon(ReportType &report, int bit);
 void Filter(ReportType &report, int bit, bool common);
 
-int Answer(std::ifstream &file)
+uint64_t Answer(std::ifstream &file)
 {
     ReportType report(std::istream_iterator<DiagnosticType>(file), {});
     int bit = number_of_bits - 1;
