@@ -1,15 +1,14 @@
 #include "main.h"
 
 #include <sstream>
+#include <vector>
 
 const int days_after = 80;
 const int days_to_new_lanternfish = 7;
 
-int NewLanternFish(int day, int timer);
-
 uint64_t Answer(std::ifstream &file)
 {
-    int lanternfish = 0;
+    std::vector<int> lanternfish;
 
     while (file.good())
     {
@@ -17,22 +16,27 @@ uint64_t Answer(std::ifstream &file)
         std::getline(file, str, ',');
         int timer;
         std::stringstream(str) >> timer;
-        lanternfish += NewLanternFish(0, timer);
+        lanternfish.push_back(timer);
     }
 
-    return lanternfish;
-}
-
-int NewLanternFish(int day, int timer)
-{
-    int lanternfish = 1;
-
-    for (int new_day = day + timer + 1;
-         new_day <= days_after;
-         new_day += days_to_new_lanternfish)
+    for (int day = 1; day <= days_after; day++)
     {
-        lanternfish += NewLanternFish(new_day, days_to_new_lanternfish + 1);
+        int new_lanternfish = 0;
+
+        for (auto &timer : lanternfish)
+        {
+            if (--timer < 0)
+            {
+                timer = days_to_new_lanternfish - 1;
+                new_lanternfish++;
+            }
+        }
+
+        for (int i = 0; i < new_lanternfish; i++)
+        {
+            lanternfish.push_back(days_to_new_lanternfish + 1);
+        }
     }
 
-    return lanternfish;
+    return lanternfish.size();
 }
