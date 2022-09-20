@@ -21,7 +21,7 @@ int Answer(std::ifstream &file)
             int dx = std::abs(x2 - x1);
             int dy = std::abs(y2 - y1);
 
-            if (dx == 0 || dy == 0)
+            if (dx == 0 || dy == 0 || dx == dy)
             {
                 int steps = std::max(dx, dy);
                 int sx = dx ? (x2 - x1) / dx : 0;
