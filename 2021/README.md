@@ -6,4 +6,5 @@ file|Note
 [day_2.cpp](day_2.cpp)|Read whitespace separated string and number from a file stream.
 [day_3.cpp](day_3.cpp)|Parse "00100 11110 ..." into std::bitset.
 [day_4.cpp](day_4.cpp)|Parse comma separated numbers in a string.
+[day_6.cpp](day_6.cpp)|My part 2 answer is 1.7 trillion lanternfish. Watching every lanternfish every day is not going to scale.
 [day_9.cpp](day_9.cpp)|Reverse std::priority_queue.
