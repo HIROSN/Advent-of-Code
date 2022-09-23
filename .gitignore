@@ -30,6 +30,8 @@
 *.exe
 *.out
 *.app
+*.bat
+*.cmd
 
 # Input files
 *.txt
