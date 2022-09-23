@@ -1,7 +1,6 @@
 #include "main.h"
 
 #include <sstream>
-#include <vector>
 
 constexpr int days_after = 256;
 constexpr int days_to_new_lanternfish = 7;
