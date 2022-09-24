@@ -11,4 +11,3 @@ file|Note
 [day_6_part_2.cpp](day_6_part_2.cpp)|Less than a second to complete.
 [day_9.cpp](day_9.cpp)|Reverse std::priority_queue.
 [day_14_part_2_ok.cpp](day_14_part_2_ok.cpp)|30 minutes to complete on i5 2.5GHz 8GB memory.
-[day_14_part_2_ok_thread_NG.cpp](day_14_part_2_ok_thread_NG.cpp)|This would double CPU consumption but actually make it run slower.
