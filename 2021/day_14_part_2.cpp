@@ -1,19 +1,18 @@
 #include "main.h"
 
-#include <cmath>
-#include <cstring>
 #include <functional>
 #include <map>
 #include <mutex>
 #include <queue>
 #include <sstream>
+#include <string.h>
 #include <thread>
 #include <utility>
 
 constexpr int final_step = 40;
 constexpr int cache_at_steps = 10;
 constexpr int cache_passes = 2;
-constexpr int cache_string_size = std::pow(2, cache_at_steps) + 1;
+constexpr int cache_string_size = 1024 /* 2^cache_at_steps */ + 1;
 std::map<std::pair<char, char>, char> rules;
 static const char valid[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 constexpr int number_of_elements = sizeof(valid) / sizeof(valid[0]);
@@ -182,7 +181,7 @@ PolymerInsertionType pair_insertion(const int steps, char left, char right)
         polymer += right;
     }
 
-    std::strcpy(polymer_insertion.polymer, polymer.c_str());
+    strcpy_s(polymer_insertion.polymer, polymer.c_str());
 
     if (steps == cache_at_steps)
     {
