@@ -33,16 +33,20 @@ PolymerInsertionType pair_insertion(const int steps, char left, char right);
 bool is_valid(const std::string &str);
 void add_elements(uint64_t *add_to, uint64_t *insertion);
 
-int number_of_threads = 2;
+int number_of_threads = 14;
 static std::mutex mutex;
 static thread_local uint64_t elements_per_thread[number_of_elements] = {};
 void pair_insertion_thread_proc(std::string polymer);
 
 uint64_t Answer(std::ifstream &file)
 {
-    if (args.size() > 1)
+    if (args.size() > 2)
     {
-        std::stringstream(args[1]) >> number_of_threads;
+        std::stringstream(args[2]) >> number_of_threads;
+    }
+    else
+    {
+        std::cout << "Usage: " << args[0] << " input num_of_cores" << std::endl;
     }
 
     std::string polymer, match, arrow, insert;

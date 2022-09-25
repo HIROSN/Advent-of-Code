@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
         return 2;
     }
 
-    for (int i = 1; i < argc; i++)
+    for (int i = 0; i < argc; i++)
     {
         args.emplace_back(argv[i]);
     }
