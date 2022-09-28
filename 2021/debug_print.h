@@ -14,14 +14,29 @@ void DPRINT_ENDL()
 
 void DPRINT(const std::vector<std::string> &vs)
 {
-    for (auto &row : vs)
+    if (vs.size() > 0)
     {
-        std::cout << row << std::endl;
+        int sx = vs[0].size();
+
+        if (sx > 0)
+        {
+            std::stringstream border;
+            border << '+' << std::string(sx, '-') << '+' << std::endl;
+            std::cout << border.str();
+
+            for (auto &row : vs)
+            {
+                std::cout << '|' << row << '|' << std::endl;
+            }
+
+            std::cout << border.str();
+        }
     }
 }
 
 void DPRINT(const std::vector<std::vector<int>> &vi)
 {
+    std::vector<std::string> vs;
     int size = 0;
 
     for (auto &row : vi)
@@ -41,13 +56,15 @@ void DPRINT(const std::vector<std::vector<int>> &vi)
 
     for (auto &row : vi)
     {
+        std::stringstream vss;
+
         for (int i = 0; i < row.size(); i++)
         {
             if (size > 1)
             {
                 if (i > 0)
                 {
-                    std::cout << " ";
+                    vss << " ";
                 }
 
                 std::stringstream ss;
@@ -56,13 +73,16 @@ void DPRINT(const std::vector<std::vector<int>> &vi)
 
                 if (sp > 0)
                 {
-                    std::cout << std::string(sp, ' ');
+                    vss << std::string(sp, ' ');
                 }
             }
-            std::cout << row[i];
+            vss << row[i];
         }
-        std::cout << std::endl;
+
+        vs.push_back(vss.str());
     }
+
+    DPRINT(vs);
 }
 
 void DPRINT2(int x, int y)
