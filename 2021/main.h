@@ -31,3 +31,9 @@ int main(int argc, char *argv[])
     file.close();
     return 0;
 }
+
+#ifndef DPRINT_ON
+#define DPRINT_ENDL()
+#define DPRINT(x)
+#define DPRINT2(x, y)
+#endif
