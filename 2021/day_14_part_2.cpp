@@ -1,128 +1,83 @@
 #include "main.h"
 
 #include <functional>
-#include <map>
-#include <mutex>
 #include <queue>
-#include <sstream>
-#include <string.h>
-#include <thread>
-#include <utility>
 
 constexpr int final_step = 40;
-constexpr int cache_at_steps = 10;
-constexpr int cache_passes = 2;
-constexpr int cache_string_size = 1024 /* 2^cache_at_steps */ + 1;
-std::map<std::pair<char, char>, char> rules;
 static const char valid[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 constexpr int number_of_elements = sizeof(valid) / sizeof(valid[0]);
 uint64_t elements[number_of_elements] = {};
+char rules[number_of_elements][number_of_elements] = {};
 
-struct PolymerInsertionType
+struct CacheType
 {
-    char polymer[cache_string_size + 1] = {};
     uint64_t elements[number_of_elements] = {};
+    std::string polymer;
 };
 
-PolymerInsertionType
-    polymer_insertion_cache[number_of_elements][number_of_elements] = {};
+constexpr int cache_size = final_step / 2;
+CacheType cache[number_of_elements][number_of_elements] = {};
 
-bool is_cached(char left, char right);
-PolymerInsertionType pair_insertion(const int steps, char left, char right);
+std::string pair_insertion(int step, char left, char right,
+                           uint64_t *new_elements);
+
+void add_elements(const uint64_t *insertion);
 bool is_valid(const std::string &str);
-void add_elements(uint64_t *add_to, uint64_t *insertion);
-
-int number_of_threads = 14;
-static std::mutex mutex;
-static thread_local uint64_t elements_per_thread[number_of_elements] = {};
-void pair_insertion_thread_proc(std::string polymer);
 
 uint64_t Answer(std::ifstream &file)
 {
-    if (args.size() > 2)
-    {
-        std::stringstream(args[2]) >> number_of_threads;
-    }
-    else
-    {
-        std::cout << "Usage: " << args[0] << " input num_of_cores" << std::endl;
-    }
-
-    std::string polymer, match, arrow, insert;
+    std::string polymer;
     file >> polymer;
 
     if (is_valid(polymer))
     {
-        for (auto ch : polymer)
+        for (char element : polymer)
         {
-            elements[ch - 'A']++;
+            elements[element - valid[0]]++;
         }
     }
+
+    std::string match, arrow, insert;
 
     while (file >> match >> arrow >> insert)
     {
-        if (arrow == "->" && match.size() >= 2 && insert.size() &&
+        if (arrow == "->" && match.size() == 2 && insert.size() &&
             is_valid(match) && is_valid(insert))
         {
-            rules[std::make_pair(match[0], match[1])] = insert[0];
+            rules[match[0] - valid[0]][match[1] - valid[0]] = insert[0];
         }
     }
 
-    for (int pass = 1; pass <= cache_passes; pass++)
+    for (int il = 0; il < number_of_elements; il++)
     {
-        std::string new_polymer;
-
-        for (int i = 0; i < polymer.size() - 1; i++)
+        for (int ir = 0; ir < number_of_elements; ir++)
         {
-            auto polymer_insertion = pair_insertion(
-                cache_at_steps, polymer[i], polymer[i + 1]);
-
-            add_elements(elements, polymer_insertion.elements);
-
-            if (new_polymer.empty())
+            if (rules[il][ir])
             {
-                new_polymer = std::string(polymer_insertion.polymer);
-            }
-            else
-            {
-                new_polymer +=
-                    std::string(polymer_insertion.polymer).substr(1);
+                cache[il][ir].polymer = pair_insertion(
+                    1, valid[il], valid[ir], cache[il][ir].elements);
             }
         }
-
-        polymer = new_polymer;
     }
 
-    if (final_step > cache_at_steps)
+    for (int i1 = 0; i1 < polymer.size() - 1; i1++)
     {
-        std::queue<std::thread> threads;
-        int it = 0;
+        int il1 = polymer[i1] - valid[0];
+        int ir1 = polymer[i1 + 1] - valid[0];
+        add_elements(cache[il1][ir1].elements);
 
-        for (int t = 0; t < number_of_threads; t++)
+        for (int i2 = 0; i2 < cache[il1][ir1].polymer.size() - 1; i2++)
         {
-            int size = polymer.size() / number_of_threads;
-
-            if (t < number_of_threads - 1)
-            {
-                threads.emplace(pair_insertion_thread_proc, polymer.substr(it, size));
-            }
-            else
-            {
-                threads.emplace(pair_insertion_thread_proc, polymer.substr(it));
-            }
-
-            it += size - 1;
-        }
-
-        while (!threads.empty())
-        {
-            threads.front().join();
-            threads.pop();
+            int il2 = cache[il1][ir1].polymer[i2] - valid[0];
+            int ir2 = cache[il1][ir1].polymer[i2 + 1] - valid[0];
+            add_elements(cache[il2][ir2].elements);
         }
     }
 
     std::priority_queue<uint64_t> most_common;
-    std::priority_queue<uint64_t, std::vector<uint64_t>, std::greater<uint64_t>>
+    std::priority_queue<
+        uint64_t,
+        std::vector<uint64_t>, std::greater<uint64_t>>
         least_common;
 
     for (auto occurs : elements)
@@ -137,36 +92,21 @@ uint64_t Answer(std::ifstream &file)
     return most_common.top() - least_common.top();
 }
 
-bool is_cached(char left, char right)
+std::string pair_insertion(int step, char left, char right,
+                           uint64_t *new_elements)
 {
-    return polymer_insertion_cache[left - 'A'][right - 'A'].polymer[0];
-}
-
-PolymerInsertionType pair_insertion(const int steps, char left, char right)
-{
-    if (steps == cache_at_steps && is_cached(left, right))
-    {
-        std::lock_guard<std::mutex> lock(mutex);
-        return polymer_insertion_cache[left - 'A'][right - 'A'];
-    }
-
     std::string polymer;
-    auto pair = std::make_pair(left, right);
-    PolymerInsertionType polymer_insertion;
+    char insert = rules[left - valid[0]][right - valid[0]];
 
-    if (rules.find(pair) != rules.end())
+    if (insert)
     {
-        char insert = rules[pair];
-        polymer_insertion.elements[insert - 'A']++;
+        new_elements[insert - valid[0]]++;
 
-        if (steps > 1)
+        if (step < cache_size)
         {
-            auto pi_left = pair_insertion(steps - 1, left, insert);
-            auto pi_right = pair_insertion(steps - 1, insert, right);
-            polymer = std::string(pi_left.polymer);
-            polymer += std::string(pi_right.polymer).substr(1);
-            add_elements(polymer_insertion.elements, pi_left.elements);
-            add_elements(polymer_insertion.elements, pi_right.elements);
+            polymer = pair_insertion(step + 1, left, insert, new_elements);
+            polymer += pair_insertion(step + 1, insert, right, new_elements)
+                           .substr(1);
         }
         else
         {
@@ -175,21 +115,19 @@ PolymerInsertionType pair_insertion(const int steps, char left, char right)
             polymer += right;
         }
     }
-    else
+
+    return polymer;
+}
+
+void add_elements(const uint64_t *insertion)
+{
+    for (int i = 0; i < number_of_elements; i++)
     {
-        polymer = left;
-        polymer += right;
+        if (insertion[i])
+        {
+            elements[i] += insertion[i];
+        }
     }
-
-    strcpy_s(polymer_insertion.polymer, polymer.c_str());
-
-    if (steps == cache_at_steps)
-    {
-        std::lock_guard<std::mutex> lock(mutex);
-        polymer_insertion_cache[left - 'A'][right - 'A'] = polymer_insertion;
-    }
-
-    return polymer_insertion;
 }
 
 bool is_valid(const std::string &str)
@@ -209,50 +147,4 @@ bool is_valid(const std::string &str)
         }
     }
     return true;
-}
-
-void add_elements(uint64_t *add_to, uint64_t *insertion)
-{
-    for (int i = 0; i < number_of_elements; i++)
-    {
-        if (insertion[i])
-        {
-            add_to[i] += insertion[i];
-        }
-    }
-}
-
-void pair_insertion_thread_proc(std::string polymer)
-{
-    for (int i = 0; i < polymer.size() - 1; i++)
-    {
-        auto polymer_insertion = pair_insertion(cache_at_steps, polymer[i], polymer[i + 1]);
-        add_elements(elements_per_thread, polymer_insertion.elements);
-
-        for (int j = 0;
-             j < cache_string_size && polymer_insertion.polymer[j + 1];
-             j++)
-        {
-            char &left = polymer_insertion.polymer[j];
-            char &right = polymer_insertion.polymer[j + 1];
-
-            if (is_cached(left, right))
-            {
-                add_elements(elements_per_thread,
-                             polymer_insertion_cache[left - 'A'][right - 'A'].elements);
-            }
-            else
-            {
-                auto sub_polymer_insertion = pair_insertion(
-                    cache_at_steps,
-                    polymer_insertion.polymer[j],
-                    polymer_insertion.polymer[j + 1]);
-
-                add_elements(elements_per_thread, sub_polymer_insertion.elements);
-            }
-        }
-    }
-
-    std::lock_guard<std::mutex> lock(mutex);
-    add_elements(elements, elements_per_thread);
 }
