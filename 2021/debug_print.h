@@ -1,7 +1,10 @@
 #ifndef DPRINT_ON
 #define DPRINT_ON
 
+#include <algorithm>
+#include <climits>
 #include <iostream>
+#include <map>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -80,6 +83,39 @@ void DPRINT(const std::vector<std::vector<int>> &vi)
         }
 
         vs.push_back(vss.str());
+    }
+
+    DPRINT(vs);
+}
+
+void DPRINT2(const std::map<std::pair<int, int>, char> &mpc, char ch)
+{
+    int sx = INT_MAX;
+    int sy = INT_MAX;
+    int ex = INT_MIN;
+    int ey = INT_MIN;
+
+    for (auto &p : mpc)
+    {
+        sx = std::min(sx, p.first.first);
+        sy = std::min(sy, p.first.second);
+        ex = std::max(ex, p.first.first);
+        ey = std::max(ey, p.first.second);
+    }
+
+    std::vector<std::string> vs;
+
+    for (int y = ey; y >= sy; y--)
+    {
+        std::string line;
+
+        for (int x = sx; x <= ex; x++)
+        {
+            auto it = mpc.find(std::make_pair(x, y));
+            line += (it != mpc.end() ? it->second : ch);
+        }
+
+        vs.push_back(line);
     }
 
     DPRINT(vs);
