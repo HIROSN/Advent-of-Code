@@ -321,7 +321,6 @@ NumberType read_snailfish_number(const std::string line)
     if (!numbers.empty())
     {
         return std::move(numbers.top());
-        numbers.pop();
     }
 
     return {};
