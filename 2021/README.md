@@ -11,3 +11,4 @@ file|Note
 [day_6_part_2.cpp](day_6_part_2.cpp)|Less than a second to complete.
 [day_9.cpp](day_9.cpp)|Reverse std::priority_queue.
 [day_15.cpp](day_15.cpp)|Dijkstra's algorithm
+[day_18.cpp](day_18.cpp)|std::unique_ptr.swap and std::move, ostream << operator overloading.
