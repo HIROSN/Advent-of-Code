@@ -7,7 +7,6 @@
 #include <map>
 #include <sstream>
 #include <string>
-#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -132,11 +131,9 @@ void DPRINT(const std::pair<int, int> &point)
     DPRINT2(point.first, point.second);
 }
 
-void DPRINT(const std::tuple<int, int, int> &point3d)
+void DPRINT3(int x, int y, int z)
 {
-    std::cout << std::get<0>(point3d) << ","
-              << std::get<1>(point3d) << ","
-              << std::get<2>(point3d);
+    std::cout << x << "," << y << "," << z;
 }
 
 #endif // DPRINT_ON

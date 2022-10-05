@@ -15,4 +15,4 @@ file|Note
 ---
 file|Note
 --|--
-[day_99.cpp](day_99.cpp)|Iterable queue using two unordered_map (reverse order; end() is the front).
+[day_99.cpp](day_99.cpp)|Iterable stack using two unordered_map.

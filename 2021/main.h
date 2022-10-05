@@ -36,4 +36,9 @@ int main(int argc, char *argv[])
 #define DPRINT_ENDL()
 #define DPRINT(x)
 #define DPRINT2(x, y)
+#define DPRINT3(x, y, z)
 #endif
+
+#define CHECK(exp) \
+    if (!exp)      \
+        return 0;
