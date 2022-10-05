@@ -1,4 +1,5 @@
 #include <iostream>
+#include <list>
 #include <map>
 #include <string>
 #include <unordered_map>
@@ -20,14 +21,14 @@ int main()
 
     std::map<std::string, int> map;
     std::unordered_map<std::string, int> unordered_map;
-    std::unordered_map<int, std::string> order;
+    std::list<std::string> order;
 
     for (int i = 0; i < sizeof(guid_list) / sizeof(guid_list[0]); i++)
     {
         std::string guid = guid_list[i];
         map[guid] = i;
         unordered_map[guid] = i;
-        order[i] = guid;
+        order.push_back(guid);
     }
 
     std::cout << "std::map - Ordered by the key." << std::endl
@@ -54,15 +55,14 @@ int main()
     }
 
     std::cout << std::endl
-              << "Iterable queue using two unordered_map (reverse order; "
-                 "end() is the front)."
+              << "Iterable queue using list and unordered_map."
               << std::endl
               << "order.begin() => ";
 
     for (auto it = order.begin(); it != order.end(); it++)
     {
-        std::cout << it->second << " : order "
-                  << unordered_map[it->second] << std::endl
+        std::cout << *it << " : order "
+                  << unordered_map[*it] << std::endl
                   << "                 ";
     }
 
