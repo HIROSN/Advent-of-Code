@@ -1,4 +1,3 @@
-// #include "debug_print.h"
 #include "main.h"
 
 #include <algorithm>
@@ -31,7 +30,7 @@ struct ScannerInfo
 {
     bool know_position = false;
     int orientation = 0;
-    int shift[3] = {};
+    int relative_to_0[3] = {};
     bool done[max_scanners] = {};
 };
 
@@ -69,8 +68,8 @@ const int orientations[max_orientations][3] = {
 };
 
 bool get_next(ScannerPair &pair);
-bool find(const ScannerPair &pair);
-bool overlaps(int s0, int s1, int o0, int o1, int *r, int a);
+bool find_overlap(const ScannerPair &pair);
+bool overlaps(int a, int s0, int s1, int o0, int o1, int *r);
 int manhattan_distance();
 int axis(int a);
 int rotate(int a, int o);
@@ -83,7 +82,7 @@ uint64_t Answer(std::ifstream &file)
 
     while (get_next(scanner_pair))
     {
-        find(scanner_pair);
+        find_overlap(scanner_pair);
     }
 
     return manhattan_distance();
@@ -92,14 +91,12 @@ uint64_t Answer(std::ifstream &file)
 bool get_next(ScannerPair &pair)
 {
     bool go_next = false;
-    int s0 = 0;
-    int s1 = 0;
 
-    for (s0 = 0; !go_next && s0 < number_of_scanners; s0++)
+    for (int s0 = 0; !go_next && s0 < number_of_scanners; s0++)
     {
         if (scanner_info[s0].know_position)
         {
-            for (s1 = 0; s1 < number_of_scanners; s1++)
+            for (int s1 = 0; s1 < number_of_scanners; s1++)
             {
                 if (!scanner_info[s0].done[s1])
                 {
@@ -114,7 +111,7 @@ bool get_next(ScannerPair &pair)
     return go_next;
 }
 
-bool find(const ScannerPair &pair)
+bool find_overlap(const ScannerPair &pair)
 {
     int s0 = pair.first;
     int o0 = pair.orientation;
@@ -124,27 +121,21 @@ bool find(const ScannerPair &pair)
 
     for (int o1 = 0; o1 < max_orientations; o1++)
     {
-        int r[3] = {};
+        int relative[3] = {};
 
-        if (overlaps(s0, s1, o0, o1, r, X) &&
-            overlaps(s0, s1, o0, o1, r, Y) &&
-            overlaps(s0, s1, o0, o1, r, Z))
+        if (overlaps(X, s0, s1, o0, o1, relative) &&
+            overlaps(Y, s0, s1, o0, o1, relative) &&
+            overlaps(Z, s0, s1, o0, o1, relative))
         {
-            for (int a = axis(X); a <= axis(Z); a++)
-            {
-                scanner_info[s1].shift[a] =
-                    scanner_info[s0].shift[a] + r[a];
-            }
-#ifdef DPRINT_ON
-            std::cout << "Scanner " << s1 << " overlaps with scanner "
-                      << s0 << ". Scanner " << s1 << " is at ";
-            DPRINT3(scanner_info[s1].shift[axis(X)],
-                    scanner_info[s1].shift[axis(Y)],
-                    scanner_info[s1].shift[axis(Z)]);
-            std::cout << " (relative to scanner 0)." << std::endl;
-#endif
             scanner_info[s1].know_position = true;
             scanner_info[s1].orientation = o1;
+
+            for (int a = axis(X); a <= axis(Z); a++)
+            {
+                scanner_info[s1].relative_to_0[a] =
+                    scanner_info[s0].relative_to_0[a] + relative[a];
+            }
+
             return true;
         }
     }
@@ -152,10 +143,10 @@ bool find(const ScannerPair &pair)
     return false;
 }
 
-bool overlaps(int s0, int s1, int o0, int o1, int *r, int a)
+bool overlaps(int a, int s0, int s1, int o0, int o1, int *r)
 {
     std::unordered_map<int, int> shift;
-    int c = 0;
+    int double_count = 0;
 
     for (auto h0 : histogram[s0][rotate(a, o0)])
     {
@@ -164,15 +155,15 @@ bool overlaps(int s0, int s1, int o0, int o1, int *r, int a)
             int s = h0.first - h1.first;
             shift[s] += h0.second + h1.second;
 
-            if (shift[s] > c)
+            if (shift[s] > double_count)
             {
-                c = shift[s];
+                double_count = shift[s];
                 r[axis(a)] = s;
             }
         }
     }
 
-    return c >= at_least * 2;
+    return double_count >= 2 * at_least;
 }
 
 int manhattan_distance()
@@ -183,11 +174,11 @@ int manhattan_distance()
     {
         for (int s1 = 0; s1 < number_of_scanners; s1++)
         {
-            int *shift_0 = scanner_info[s0].shift;
-            int *shift_1 = scanner_info[s1].shift;
-            int md = std::abs(shift_0[axis(X)] - shift_1[axis(X)]) +
-                     std::abs(shift_0[axis(Y)] - shift_1[axis(Y)]) +
-                     std::abs(shift_0[axis(Z)] - shift_1[axis(Z)]);
+            int *relative_0 = scanner_info[s0].relative_to_0;
+            int *relative_1 = scanner_info[s1].relative_to_0;
+            int md = std::abs(relative_0[axis(X)] - relative_1[axis(X)]) +
+                     std::abs(relative_0[axis(Y)] - relative_1[axis(Y)]) +
+                     std::abs(relative_0[axis(Z)] - relative_1[axis(Z)]);
 
             if (md > largest_manhattan_distance)
             {
