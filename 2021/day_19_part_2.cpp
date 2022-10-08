@@ -71,7 +71,6 @@ const int orientations[max_orientations][3] = {
 bool get_next(ScannerPair &pair);
 bool find(const ScannerPair &pair);
 bool overlaps(int s0, int s1, int o0, int o1, int *r, int a);
-bool valid(int s0, int s1, int o0, int o1, int *r);
 int manhattan_distance();
 int axis(int a);
 int rotate(int a, int o);
@@ -131,25 +130,22 @@ bool find(const ScannerPair &pair)
             overlaps(s0, s1, o0, o1, r, Y) &&
             overlaps(s0, s1, o0, o1, r, Z))
         {
-            if (valid(s0, s1, o0, o1, r))
+            for (int a = axis(X); a <= axis(Z); a++)
             {
-                for (int a = axis(X); a <= axis(Z); a++)
-                {
-                    scanner_info[s1].shift[a] =
-                        scanner_info[s0].shift[a] + r[a];
-                }
-#ifdef DPRINT_ON
-                std::cout << "Scanner " << s1 << " overlaps with scanner "
-                          << s0 << ". Scanner " << s1 << " is at ";
-                DPRINT3(scanner_info[s1].shift[axis(X)],
-                        scanner_info[s1].shift[axis(Y)],
-                        scanner_info[s1].shift[axis(Z)]);
-                std::cout << " (relative to scanner 0)." << std::endl;
-#endif
-                scanner_info[s1].know_position = true;
-                scanner_info[s1].orientation = o1;
-                return true;
+                scanner_info[s1].shift[a] =
+                    scanner_info[s0].shift[a] + r[a];
             }
+#ifdef DPRINT_ON
+            std::cout << "Scanner " << s1 << " overlaps with scanner "
+                      << s0 << ". Scanner " << s1 << " is at ";
+            DPRINT3(scanner_info[s1].shift[axis(X)],
+                    scanner_info[s1].shift[axis(Y)],
+                    scanner_info[s1].shift[axis(Z)]);
+            std::cout << " (relative to scanner 0)." << std::endl;
+#endif
+            scanner_info[s1].know_position = true;
+            scanner_info[s1].orientation = o1;
+            return true;
         }
     }
 
@@ -177,35 +173,6 @@ bool overlaps(int s0, int s1, int o0, int o1, int *r, int a)
     }
 
     return c >= at_least * 2;
-}
-
-bool valid(int s0, int s1, int o0, int o1, int *r)
-{
-    int c = 0;
-
-    for (int b0 = 0; b0 < number_of_beacons[s0]; b0++)
-    {
-        int b0_x = beacons[s0][b0][rotate(X, o0)];
-        int b0_y = beacons[s0][b0][rotate(Y, o0)];
-        int b0_z = beacons[s0][b0][rotate(Z, o0)];
-
-        HistogramType &h1_x = histogram[s1][rotate(X, o1)];
-        HistogramType &h1_y = histogram[s1][rotate(Y, o1)];
-        HistogramType &h1_z = histogram[s1][rotate(Z, o1)];
-
-        int b1_x = b0_x - r[axis(X)];
-        int b1_y = b0_y - r[axis(Y)];
-        int b1_z = b0_z - r[axis(Z)];
-
-        if (h1_x.find(b1_x) != h1_x.end() && h1_x[b1_x] > 0 &&
-            h1_y.find(b1_y) != h1_y.end() && h1_y[b1_y] > 0 &&
-            h1_z.find(b1_z) != h1_z.end() && h1_z[b1_z] > 0)
-        {
-            c++;
-        }
-    }
-
-    return c >= at_least;
 }
 
 int manhattan_distance()
@@ -239,7 +206,7 @@ int axis(int a)
 
 int rotate(int a, int o)
 {
-    return axis(orientations[o][a - 1]);
+    return axis(orientations[o][axis(a)]);
 }
 
 bool read_scanners(std::ifstream &file)
