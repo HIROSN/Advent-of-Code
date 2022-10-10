@@ -2,8 +2,6 @@
 
 #include <algorithm>
 #include <queue>
-#include <unordered_map>
-#include <utility>
 
 struct Player
 {
@@ -33,50 +31,48 @@ struct Player
     }
 };
 
-using Game = std::pair<Player, Player>;
-
-std::unordered_map<int, int> moves_to_universes;
+struct Game
+{
+    Player first;
+    Player second;
+};
 
 uint64_t Answer(std::ifstream &file)
 {
-    for (int move_1 = 1; move_1 <= 3; move_1++)
-        for (int move_2 = 1; move_2 <= 3; move_2++)
-            for (int move_3 = 1; move_3 <= 3; move_3++)
-                moves_to_universes[move_1 + move_2 + move_3]++;
-
+    const int moves_to_universes[] = {1, 3, 6, 7, 6, 3, 1};
     std::queue<Game> games;
     games.push({Player(file), Player(file)});
-    std::unordered_map<int, uint64_t> total_player_universes;
+    uint64_t total_player_universes[2] = {};
 
     while (true)
     {
         auto &game = games.front();
 
-        for (auto &move_1 : moves_to_universes)
+        for (int move_1 = 3; move_1 <= 9; move_1++)
         {
             auto player = game.first;
-            player.move(move_1.first);
-            player.universes *= moves_to_universes[move_1.first];
+            player.move(move_1);
+            player.universes *= moves_to_universes[move_1 - 3];
 
             if (player.wins())
             {
-                total_player_universes[player.id] += player.universes;
+                total_player_universes[player.id - 1] += player.universes;
                 continue;
             }
 
-            for (auto &move_2 : moves_to_universes)
+            for (int move_2 = 3; move_2 <= 9; move_2++)
             {
                 auto player_1 = player;
-                player_1.universes *= moves_to_universes[move_2.first];
+                player_1.universes *= moves_to_universes[move_2 - 3];
 
                 auto player_2 = game.second;
-                player_2.move(move_2.first);
-                player_2.universes *= moves_to_universes[move_1.first];
-                player_2.universes *= moves_to_universes[move_2.first];
+                player_2.move(move_2);
+                player_2.universes *= moves_to_universes[move_1 - 3];
+                player_2.universes *= moves_to_universes[move_2 - 3];
 
                 if (player_2.wins())
                 {
-                    total_player_universes[player_2.id] += player_2.universes;
+                    total_player_universes[player_2.id - 1] += player_2.universes;
                     continue;
                 }
 
@@ -94,9 +90,9 @@ uint64_t Answer(std::ifstream &file)
 
     uint64_t wins_more = 0;
 
-    for (auto &it : total_player_universes)
+    for (auto &universes : total_player_universes)
     {
-        wins_more = std::max(wins_more, it.second);
+        wins_more = std::max(wins_more, universes);
     }
 
     return wins_more;
