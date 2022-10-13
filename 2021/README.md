@@ -10,3 +10,4 @@ file|Note
 [day_9.cpp](day_9.cpp)|Reverse std::priority_queue.
 [day_15.cpp](day_15.cpp)|Dijkstra's algorithm. May push and pop both to/from priority_queue in while loop.
 [day_18.cpp](day_18.cpp)|std::unique_ptr.swap and std::move, ostream << operator overloading.
+[day_22.cpp](day_22.cpp)|Override std::hash for unordered_set/map\<std::tuple\>.
