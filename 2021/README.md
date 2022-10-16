@@ -12,6 +12,7 @@ file|Note
 [day_18.cpp](day_18.cpp)|std::unique_ptr.swap and std::move, ostream << operator overloading.
 [day_22.cpp](day_22.cpp)|Override std::hash for unordered_set/map\<std::tuple\>.
 days 21,22&23|unordered_set/map (O(1)~O(n)) is apparently slow when used in a tight loop. [1]
+[day_24.cpp](day_24.cpp)|Do not think of a solution without unordered_map but luckily mysterious restrictions worked.
 day_99.cpp|unordered_set/map (no ordering) changes the order of elements.
 
 [1] You feel this difference as 30 seconds vs. 3 seconds elapsed time on a laptop.
