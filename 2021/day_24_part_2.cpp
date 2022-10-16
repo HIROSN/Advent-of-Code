@@ -44,11 +44,18 @@ uint64_t Answer(std::ifstream &file)
 
                 if (z && prev_unique_z.size() == mysterious_restrictions &&
                     prev_unique_z.find(z) == prev_unique_z.end())
+                {
                     continue;
+                }
 
-                model[z].number = std::max(model[z].number, number);
-                model[z].unique_z = prev_unique_z;
-                model[z].unique_z[z]++;
+                ModelNumber model_number{number, prev_unique_z};
+                model_number.unique_z[z]++;
+                auto [it, inserted] = model.emplace(z, std::move(model_number));
+
+                if (!inserted)
+                {
+                    it->second.number = std::min(it->second.number, number);
+                }
             }
         }
     }
