@@ -33,3 +33,10 @@ Stack|Count|Weight_[ms]
 `day_21_part_2.exe!Answer<itself>`|478|475.9797
 `day_21_part_2.exe!std::deque<Game,std::allocator<Game> >::~deque<Game,std::allocator<Game> >`|214|213.909
 `day_21_part_2.exe!operator new`|207|206.2792
+
+day|N|elapsed|notes
+--|--|--|--
+day_21_part_2|95M|30 secs|unordered_map+pair
+day_21_part_2|95M|3 secs|C array+struct
+day_24_part_2|285M|2 mins|unordered_map
+day_24_part_2|11M|11 secs|unordered_map+mysterious restrictions
