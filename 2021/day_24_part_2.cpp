@@ -37,18 +37,25 @@ uint64_t Answer(std::ifstream &file)
             const auto &prev_number = prev.second.number;
             const auto &prev_unique_z = prev.second.unique_z;
 
-            for (int digit = 9; digit > 0; digit--)
+            for (int digit = 1; digit <= 9; digit++)
             {
                 auto z = run(digit, prev_z, diffs[i]);
                 auto number = prev_number * 10 + digit;
 
                 if (z && prev_unique_z.size() == mysterious_restrictions &&
                     prev_unique_z.find(z) == prev_unique_z.end())
+                {
                     continue;
+                }
 
-                model[z].number = std::max(model[z].number, number);
-                model[z].unique_z = prev_unique_z;
-                model[z].unique_z[z]++;
+                ModelNumber model_number{number, prev_unique_z};
+                model_number.unique_z[z]++;
+                auto [it, inserted] = model.emplace(z, std::move(model_number));
+
+                if (!inserted)
+                {
+                    it->second.number = std::min(it->second.number, number);
+                }
             }
         }
     }
