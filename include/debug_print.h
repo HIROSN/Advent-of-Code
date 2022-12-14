@@ -88,7 +88,7 @@ void DPRINT(const std::vector<std::vector<int>> &vi)
     DPRINT(vs);
 }
 
-void DPRINT2(const std::map<std::pair<int, int>, char> &mpc, char ch)
+void DPRINT3(const std::map<std::pair<int, int>, char> &mpc, char ch, int dy)
 {
     int sx = INT_MAX;
     int sy = INT_MAX;
@@ -103,9 +103,12 @@ void DPRINT2(const std::map<std::pair<int, int>, char> &mpc, char ch)
         ey = std::max(ey, p.first.second);
     }
 
+    if (dy < 0)
+        std::swap(sy, ey);
+
     std::vector<std::string> vs;
 
-    for (int y = ey; y >= sy; y--)
+    for (int y = sy; true; y += dy)
     {
         std::string line;
 
@@ -116,9 +119,16 @@ void DPRINT2(const std::map<std::pair<int, int>, char> &mpc, char ch)
         }
 
         vs.push_back(line);
+        if (y == ey)
+            break;
     }
 
     DPRINT(vs);
+}
+
+void DPRINT2(const std::map<std::pair<int, int>, char> &mpc, char ch)
+{
+    DPRINT3(mpc, ch, -1);
 }
 
 void DPRINT2(int x, int y)
