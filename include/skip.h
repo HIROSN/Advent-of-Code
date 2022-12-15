@@ -1,5 +1,7 @@
 #pragma once
 
+#include <limits>
+
 template <typename T>
 bool skip(std::istream &stream, int many = 1)
 {
@@ -14,4 +16,9 @@ bool skip(std::istream &stream, int many = 1)
     }
 
     return true;
+}
+
+void skip(std::istream &stream, char delim)
+{
+    stream.ignore(std::numeric_limits<std::streamsize>::max(), delim);
 }
