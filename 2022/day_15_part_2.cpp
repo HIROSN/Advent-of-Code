@@ -5,6 +5,8 @@
 #include <map>
 #include <utility>
 
+constexpr int limit = 4000000;
+constexpr int block = 1000000;
 using Point = std::pair<int, int>;
 
 bool read_point(std::ifstream &file, Point &point);
@@ -16,14 +18,10 @@ bool find(const std::map<Point, int> &reports,
 std::optional<uint64_t> Answer(std::ifstream &file)
 {
     std::map<Point, int> reports;
-    Point sensor, beacon;
+    Point sensor, beacon, distress_beacon;
 
     while (read_point(file, sensor) && read_point(file, beacon))
         reports[sensor] = distance(sensor, beacon);
-
-    const int limit = 4000000;
-    const int block = 1000000;
-    Point distress_beacon;
 
     if (find(reports, 0, 0, limit, limit, block, distress_beacon))
     {
@@ -118,7 +116,17 @@ bool find(const std::map<Point, int> &reports,
                     if (b > 1000)
                         DPRINT2(x, y);
 #endif
-                    if (find(reports, x, y, x + b, y + b, b / 10, distress_beacon))
+                    int bex = x + b;
+                    int bey = y + b;
+                    int sb = b / 10;
+                    if (sb == 1)
+                    {
+                        if (bex == limit)
+                            bex++;
+                        if (bey == limit)
+                            bey++;
+                    }
+                    if (find(reports, x, y, bex, bey, sb, distress_beacon))
                         return true;
                 }
                 else

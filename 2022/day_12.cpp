@@ -119,10 +119,7 @@ std::optional<uint64_t> Answer(std::ifstream &file)
 #ifdef DPRINT_ON
     debug_print_path(entered_from, start, end);
 #endif
-    int fewest_steps = steps[std::get<Y>(end)][std::get<X>(end)];
-    if (fewest_steps)
-        return fewest_steps;
-    return {};
+    return steps[std::get<Y>(end)][std::get<X>(end)];
 }
 
 std::vector<PointType> adjacent_points(int x, int y)
