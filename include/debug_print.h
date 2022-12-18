@@ -88,7 +88,47 @@ void DPRINT(const std::vector<std::vector<int>> &vi)
     DPRINT(vs);
 }
 
-void DPRINT3(const std::map<std::pair<int, int>, char> &mpc, char ch, int dy)
+std::vector<std::vector<int>> mpi_to_vi(
+    const std::map<std::pair<int, int>, int> &mpi, int def, int dy)
+{
+    int sx = INT_MAX;
+    int sy = INT_MAX;
+    int ex = INT_MIN;
+    int ey = INT_MIN;
+
+    for (auto &p : mpi)
+    {
+        sx = std::min(sx, p.first.first);
+        sy = std::min(sy, p.first.second);
+        ex = std::max(ex, p.first.first);
+        ey = std::max(ey, p.first.second);
+    }
+
+    if (dy < 0)
+        std::swap(sy, ey);
+
+    std::vector<std::vector<int>> vi;
+
+    for (int y = sy; true; y += dy)
+    {
+        std::vector<int> line;
+
+        for (int x = sx; x <= ex; x++)
+        {
+            auto it = mpi.find(std::make_pair(x, y));
+            line.push_back(it != mpi.end() ? it->second : def);
+        }
+
+        vi.push_back(line);
+        if (y == ey)
+            break;
+    }
+
+    return vi;
+}
+
+std::vector<std::string> mpc_to_vs(
+    const std::map<std::pair<int, int>, char> &mpc, char ch, int dy)
 {
     int sx = INT_MAX;
     int sy = INT_MAX;
@@ -123,7 +163,12 @@ void DPRINT3(const std::map<std::pair<int, int>, char> &mpc, char ch, int dy)
             break;
     }
 
-    DPRINT(vs);
+    return vs;
+}
+
+void DPRINT3(const std::map<std::pair<int, int>, char> &mpc, char ch, int dy)
+{
+    DPRINT(mpc_to_vs(mpc, ch, dy));
 }
 
 void DPRINT2(const std::map<std::pair<int, int>, char> &mpc, char ch)
