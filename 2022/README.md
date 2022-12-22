@@ -4,3 +4,4 @@ file|Note
 [day_16_part_2.cpp](day_16_part_2.cpp)|Very slow.
 [day_19.cpp](day_19.cpp)|Suboptimal or,
 [day_19_part_2.cpp](day_19_part_2.cpp)|Very slow.
+[day_21_part_2.cpp](day_21_part_2.cpp)|```1'000'000```
