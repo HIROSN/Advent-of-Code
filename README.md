@@ -8,15 +8,15 @@ MSVC (cl) tasks.json
     "tasks": [
         {
             "args": [
-				"/I..\\include",
+                "/I..\\include",
                 "/std:c++17",
 ```
 MinGW (g++) tasks.json
 ```
-	"tasks": [
-		{
-			"args": [
-				"-I..\\include",
+    "tasks": [
+        {
+            "args": [
+                "-I..\\include",
 ```
 c_cpp_properties.json
 ```
