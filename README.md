@@ -18,6 +18,15 @@ MinGW (g++) tasks.json
             "args": [
                 "-I..\\include",
 ```
+Mac (clang++) tasks.json
+```
+    "tasks": [
+        {
+            "args": [
+                "-I${fileDirname}/../include",
+                "-std=c++17",
+                "-stdlib=libc++",
+```
 c_cpp_properties.json
 ```
     "configurations": [
