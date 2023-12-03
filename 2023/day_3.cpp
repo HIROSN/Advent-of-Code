@@ -54,7 +54,7 @@ std::optional<uint64_t> Answer(std::ifstream &file)
     };
 
     Part part;
-    std::vector<Part> parts;
+    int sum_of_part_numbers = 0;
 
     for (int y = 0; y < size_y; y++)
     {
@@ -68,18 +68,12 @@ std::optional<uint64_t> Answer(std::ifstream &file)
 
                 if (last_digit(x, y))
                 {
-                    parts.push_back(std::move(part));
+                    if (part.is_adjacent_to_symbol)
+                        sum_of_part_numbers += part.part_number();
                     part = {};
                 }
             }
         }
-    }
-
-    int sum_of_part_numbers = 0;
-    for (auto part : parts)
-    {
-        if (part.is_adjacent_to_symbol)
-            sum_of_part_numbers += part.part_number();
     }
 
     return sum_of_part_numbers;
