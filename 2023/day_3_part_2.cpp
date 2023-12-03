@@ -4,7 +4,6 @@
 #include <cctype>
 #include <map>
 #include <sstream>
-#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -67,8 +66,7 @@ std::optional<uint64_t> Answer(std::ifstream &file)
     };
 
     Part part;
-    std::vector<int> part_numbers;
-    std::map<Point, std::unordered_set<int>> parts_adjacent_to_star;
+    std::map<Point, std::vector<int>> parts_adjacent_to_star;
 
     for (int y = 0; y < size_y; y++)
     {
@@ -82,10 +80,11 @@ std::optional<uint64_t> Answer(std::ifstream &file)
 
                 if (last_digit(x, y))
                 {
-                    const int part_id = part_numbers.size();
                     for (auto star : part.stars)
-                        parts_adjacent_to_star[star].insert(part_id);
-                    part_numbers.push_back(part.part_number());
+                    {
+                        parts_adjacent_to_star[star].push_back(
+                            part.part_number());
+                    }
                     part = {};
                 }
             }
@@ -98,8 +97,8 @@ std::optional<uint64_t> Answer(std::ifstream &file)
         if (it.second.size() == 2)
         {
             int gear_ratio = 1;
-            for (auto part_id : it.second)
-                gear_ratio *= part_numbers[part_id];
+            for (auto part_number : it.second)
+                gear_ratio *= part_number;
             sum_of_gear_ratios += gear_ratio;
         }
     }
