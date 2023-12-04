@@ -1,8 +1,10 @@
 #include <main.h>
 
-#include <algorithm>
+#include <queue>
 #include <sstream>
-#include <vector>
+
+using reverse_priority_queue = std::priority_queue<int, std::vector<int>,
+                                                   std::greater<int>>;
 
 std::optional<uint64_t> Answer(std::ifstream &file)
 {
@@ -15,25 +17,18 @@ std::optional<uint64_t> Answer(std::ifstream &file)
         const auto bar = line.find('|');
         std::stringstream ss_left(line.substr(colon + 1, bar - colon - 1));
         std::stringstream ss_right(line.substr(bar + 1));
-        std::vector<int> winning_numbers;
-        std::vector<int> numbers;
+        reverse_priority_queue winning_numbers;
+        reverse_priority_queue numbers;
         int number, points = 0;
 
         while (ss_left >> number)
-            winning_numbers.push_back(number);
+            winning_numbers.push(number);
         while (ss_right >> number)
-            numbers.push_back(number);
+            numbers.push(number);
 
-        std::sort(winning_numbers.begin(), winning_numbers.end());
-        std::sort(numbers.begin(), numbers.end());
-
-        auto it_winning_number = winning_numbers.begin();
-        auto it_number = numbers.begin();
-
-        while (it_winning_number != winning_numbers.end() &&
-               it_number != numbers.end())
+        while (!winning_numbers.empty() && !numbers.empty())
         {
-            if (*it_winning_number == *it_number)
+            if (winning_numbers.top() == numbers.top())
             {
                 if (!points)
                     points = 1;
@@ -41,10 +36,10 @@ std::optional<uint64_t> Answer(std::ifstream &file)
                     points *= 2;
             }
 
-            if (*it_winning_number < *it_number)
-                it_winning_number++;
+            if (winning_numbers.top() < numbers.top())
+                winning_numbers.pop();
             else
-                it_number++;
+                numbers.pop();
         }
 
         total_points += points;
