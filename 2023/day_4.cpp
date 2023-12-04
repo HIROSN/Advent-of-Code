@@ -3,9 +3,6 @@
 #include <queue>
 #include <sstream>
 
-using reverse_priority_queue = std::priority_queue<int, std::vector<int>,
-                                                   std::greater<int>>;
-
 std::optional<uint64_t> Answer(std::ifstream &file)
 {
     std::string line;
@@ -17,8 +14,8 @@ std::optional<uint64_t> Answer(std::ifstream &file)
         const auto bar = line.find('|');
         std::stringstream ss_left(line.substr(colon + 1, bar - colon - 1));
         std::stringstream ss_right(line.substr(bar + 1));
-        reverse_priority_queue winning_numbers;
-        reverse_priority_queue numbers;
+        std::priority_queue<int> winning_numbers;
+        std::priority_queue<int> numbers;
         int number, points = 0;
 
         while (ss_left >> number)
@@ -36,7 +33,7 @@ std::optional<uint64_t> Answer(std::ifstream &file)
                     points *= 2;
             }
 
-            if (winning_numbers.top() < numbers.top())
+            if (winning_numbers.top() > numbers.top())
                 winning_numbers.pop();
             else
                 numbers.pop();
