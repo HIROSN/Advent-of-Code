@@ -127,24 +127,23 @@ std::optional<uint64_t> Answer(std::ifstream &file)
 
     struct Seeds
     {
-        Ranges ranges;
-
-        Ranges find_ranges(
-            const Range &range, const MapsList &maps_list, int index)
+        bool find_range(const Range &range, const MapsList &maps_list,
+                        int index, Range &found)
         {
             if (index < 0)
             {
-                ranges.push_back(range);
+                found = range;
+                return true;
             }
-            else
+
+            for (auto &source_range : to_source_ranges(range,
+                                                       maps_list[index]))
             {
-                for (auto &source_range : to_source_ranges(range,
-                                                           maps_list[index]))
-                {
-                    find_ranges(source_range, maps_list, index - 1);
-                }
+                if (find_range(source_range, maps_list, index - 1, found))
+                    return true;
             }
-            return ranges;
+
+            return false;
         }
 
         Ranges to_source_ranges(Range range, const Maps &maps)
@@ -164,35 +163,34 @@ std::optional<uint64_t> Answer(std::ifstream &file)
 
     const int humidity_to_location = maps_list.size() - 1;
     const int temperature_to_humidity = maps_list.size() - 2;
-    Ranges seed_ranges;
+    Range seed_range;
 
     for (const auto &location_map : maps_list[humidity_to_location])
     {
         Range location_range = location_map.to_source_range(
             location_map.destination_range());
-        Seeds seeds;
-        seed_ranges = seeds.find_ranges(
-            location_range, maps_list, temperature_to_humidity);
-        if (seed_ranges.size())
+
+        if (Seeds().find_range(location_range, maps_list,
+                               temperature_to_humidity, seed_range))
+        {
             break;
+        }
     }
 
-    auto seed_to_location = [&](Number number)
+    Number lowest_number = seed_range.start;
+
+    for (const auto &maps : maps_list)
     {
-        for (const auto &maps : maps_list)
+        for (const auto &map : maps)
         {
-            for (const auto &map : maps)
+            if (map.source <= lowest_number &&
+                lowest_number < map.source + map.length)
             {
-                if (map.source <= number &&
-                    number < map.source + map.length)
-                {
-                    number = map.destination + number - map.source;
-                    break;
-                }
+                lowest_number = map.destination + lowest_number - map.source;
+                break;
             }
         }
-        return number;
-    };
+    }
 
-    return seed_to_location(seed_ranges[0].start);
+    return lowest_number;
 }
