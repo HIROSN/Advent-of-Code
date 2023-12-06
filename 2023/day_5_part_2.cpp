@@ -181,42 +181,17 @@ std::optional<uint64_t> Answer(std::ifstream &file)
 
     const int humidity_to_location = maps_list.size() - 1;
     const int temperature_to_humidity = maps_list.size() - 2;
-    Range location_range;
     Ranges seed_ranges;
-
-    auto get_seed_ranges = [&](const Range &range) -> bool
-    {
-        Seeds seeds;
-        seed_ranges = seeds.find_ranges(
-            location_range, maps_list, temperature_to_humidity);
-        return seed_ranges.size() > 0;
-    };
 
     for (const auto &location_map : maps_list[humidity_to_location])
     {
-        location_range = location_map.to_source_range(
+        Range location_range = location_map.to_source_range(
             location_map.destination_range());
-        if (get_seed_ranges(location_range))
+        Seeds seeds;
+        seed_ranges = seeds.find_ranges(
+            location_range, maps_list, temperature_to_humidity);
+        if (seed_ranges.size())
             break;
-    }
-
-    while (seed_ranges.size() > 1)
-    {
-        auto range = location_range.split_left();
-        if (get_seed_ranges(range))
-        {
-            location_range = range;
-            continue;
-        }
-
-        range = location_range.split_right();
-        if (get_seed_ranges(range))
-        {
-            location_range = range;
-            continue;
-        }
-
-        return {};
     }
 
     auto seed_to_location = [&](Number number)
