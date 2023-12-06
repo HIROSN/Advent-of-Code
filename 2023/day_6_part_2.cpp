@@ -1,7 +1,6 @@
 #include <main.h>
 #include <skip.h>
 
-#include <list>
 #include <sstream>
 
 std::optional<uint64_t> Answer(std::ifstream &file)
