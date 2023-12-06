@@ -30,23 +30,6 @@ std::optional<uint64_t> Answer(std::ifstream &file)
             return {std::max({start, other.start}),
                     std::min({end, other.end})};
         }
-
-        bool operator<(const Range &right) const
-        {
-            return start < right.start;
-        }
-
-        Range split_left() const
-        {
-            const Number half = (end - start) / 2;
-            return {start, std::min({end, half})};
-        }
-
-        Range split_right() const
-        {
-            const Number half = (end - start) / 2;
-            return {std::min({end, half + 1}), end};
-        }
     };
 
     struct Map
