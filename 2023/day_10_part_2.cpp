@@ -153,10 +153,7 @@ std::optional<uint64_t> Answer(std::ifstream &file)
     DPRINT(loop);
     const char in = 'I';
     const char out = 'O';
-    const int grid_x = loop[0].size();
-    const int grid_y = loop.size();
-    const int sketch_x = grid_x - 2;
-    const int sketch_y = grid_y - 2;
+    int tiles_enclosed = 0;
 
     std::map<char, char> char_map{
         {'F', '.'},
@@ -166,60 +163,51 @@ std::optional<uint64_t> Answer(std::ifstream &file)
         {'-', '.'},
         {'|', '.'}};
 
-    auto scan = [&](std::vector<std::string> &grid,
-                    int sx, int ex, int dx,
-                    int sy, int ey, int dy,
-                    std::function<void(int, int, char)> run) -> void
+    for (int y = 0; y < loop.size(); y++)
     {
-        for (int y = sy; y < ey; y += dy)
-            for (int x = sx; x < ex; x += dx)
-                run(x, y, grid[y][x]);
-    };
-
-    auto make_in_out = [&](int x, int y, char tile) -> void
-    {
-        if (char_map.find(zero) == char_map.end())
+        for (int x = 0; x < loop[0].size(); x++)
         {
-            if (tile == zero)
+            char tile = loop[y][x];
+
+            if (char_map.find(zero) == char_map.end())
             {
-                char_map[zero] = out;
-                char_map[one] = in;
+                if (tile == zero)
+                {
+                    char_map[zero] = out;
+                    char_map[one] = in;
+                }
+                else if (tile == one)
+                {
+                    char_map[one] = out;
+                    char_map[zero] = in;
+                }
             }
-            else if (tile == one)
+
+            if (char_map.find(tile) != char_map.end())
             {
-                char_map[one] = out;
-                char_map[zero] = in;
+                tile = char_map[tile];
+                in_out[y][x] = tile;
             }
-        }
 
-        if (char_map.find(tile) != char_map.end())
-            tile = char_map[tile];
-        in_out[y][x] = tile;
-    };
+            if (x == 0 || y == 0)
+                continue;
 
-    scan(loop, 0, grid_x, 1, 0, grid_y, 1, make_in_out);
-    DPRINT(in_out);
-    int tiles_enclosed = 0;
-
-    auto fill_inside = [&](int x, int y, char tile) -> void
-    {
-        switch (tile)
-        {
-        case in:
-            tiles_enclosed++;
-            break;
-        case ' ':
-            if (in_out[y - 1][x] == in || in_out[y][x - 1] == in)
+            switch (tile)
             {
-                in_out[y][x] = in;
+            case in:
                 tiles_enclosed++;
+                break;
+            case ' ':
+                if (in_out[y - 1][x] == in || in_out[y][x - 1] == in)
+                {
+                    in_out[y][x] = in;
+                    tiles_enclosed++;
+                }
+                break;
             }
-            break;
         }
-    };
+    }
 
-    scan(in_out, 1, sketch_x, 1, 1, sketch_y, 1, fill_inside);
     DPRINT(in_out);
-
     return tiles_enclosed;
 }
