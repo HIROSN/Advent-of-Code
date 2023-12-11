@@ -1,19 +1,15 @@
 #include <main.h>
 
 #include <cmath>
+#include <memory>
 #include <utility>
 #include <vector>
 
 std::optional<uint64_t> Answer(std::ifstream &file)
 {
-    struct Point
-    {
-        int64_t x;
-        int64_t y;
-    };
-
+    using Point = std::pair<int64_t, int64_t>;
     const int64_t expand = 1000000 - 1;
-    std::optional<Point> image[140][140];
+    std::unique_ptr<Point> image[140][140];
     std::string line;
     int64_t size_x, size_y;
 
@@ -26,7 +22,9 @@ std::optional<uint64_t> Answer(std::ifstream &file)
         for (int64_t x = 0; x < size_x; x++)
         {
             if (line[x] == '#')
-                image[x][y] = {x, y};
+            {
+                image[x][y] = std::make_unique<Point>(x, y);
+            }
         }
     }
 
@@ -34,30 +32,30 @@ std::optional<uint64_t> Answer(std::ifstream &file)
     {
         bool galaxies = false;
         for (int64_t y = 0; !galaxies && y < size_y; y++)
-            galaxies |= image[rx][y].has_value();
+            galaxies |= image[rx][y] != nullptr;
 
         if (galaxies)
             continue;
 
         for (int64_t ex = rx + 1; ex < size_x; ex++)
             for (int64_t y = 0; y < size_y; y++)
-                if (image[ex][y].has_value())
-                    image[ex][y].value().x += expand;
+                if (image[ex][y])
+                    image[ex][y]->first += expand;
     }
 
     for (int64_t ry = size_y - 1; ry >= 0; ry--)
     {
         bool galaxies = false;
         for (int64_t x = 0; !galaxies && x < size_x; x++)
-            galaxies |= image[x][ry].has_value();
+            galaxies |= image[x][ry] != nullptr;
 
         if (galaxies)
             continue;
 
         for (int64_t ey = ry + 1; ey < size_y; ey++)
             for (int64_t x = 0; x < size_x; x++)
-                if (image[x][ey].has_value())
-                    image[x][ey].value().y += expand;
+                if (image[x][ey])
+                    image[x][ey]->second += expand;
     }
 
     std::vector<Point> galaxies;
@@ -65,12 +63,12 @@ std::optional<uint64_t> Answer(std::ifstream &file)
 
     for (int64_t x = 0; x < size_x; x++)
         for (int64_t y = 0; y < size_y; y++)
-            if (image[x][y].has_value())
-                galaxies.push_back(image[x][y].value());
+            if (image[x][y])
+                galaxies.emplace_back(std::move(*image[x][y].release()));
 
     auto length = [](const Point &a, const Point &b) -> int64_t
     {
-        return std::abs(a.x - b.x) + std::abs(a.y - b.y);
+        return std::abs(a.first - b.first) + std::abs(a.second - b.second);
     };
 
     for (int64_t a = 0; a < galaxies.size() - 1; a++)
