@@ -8,6 +8,8 @@
 #include <string_view>
 #include <vector>
 
+#include <timer.h>
+
 std::vector<std::string_view> args;
 
 std::optional<uint64_t> Answer(std::ifstream &file);
@@ -31,7 +33,13 @@ int main(int argc, char *argv[])
         args.emplace_back(argv[i]);
     }
 
+#ifdef DPRINT_ON
+    aoc::Timer timer;
+#endif
     auto answer = Answer(file);
+#ifdef DPRINT_ON
+    std::cout << timer.elapsed() << " [sec.]" << std::endl;
+#endif
 
     if (answer)
     {
@@ -50,5 +58,5 @@ int main(int argc, char *argv[])
 #endif
 
 #define CHECK(exp) \
-    if (!exp)      \
+    if (!(exp))    \
         return {};
