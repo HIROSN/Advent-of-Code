@@ -82,65 +82,44 @@ std::optional<uint64_t> Answer(std::ifstream &file)
     int cubic_meters = lagoon.cubic_meters();
     bool has_interior = false;
 
-    const Point forward[3] = {{1, 0}, {1, 1}, {0, 1}};
-    const Point backward[3] = {{-1, 0}, {-1, -1}, {0, -1}};
+    using Points = std::vector<Point>;
+    const Points forward{{1, 0}, {1, 1}, {0, 1}};
+    const Points backward{{-1, 0}, {-1, -1}, {0, -1}};
+
+    auto find_interior = [&](const Points &adjacent, int x, int y) -> void
+    {
+        const char &ch = lagoon.grid[y][x];
+        if (ch != '.')
+        {
+            if (!has_interior || ch == 'I')
+            {
+                for (const auto &adj : adjacent)
+                {
+                    const int ax = x + adj.x;
+                    const int ay = y + adj.y;
+                    char &ach = lagoon.grid[ay][ax];
+
+                    if (ach == '.')
+                    {
+                        ach = 'I';
+                        lagoon.points.push_back(
+                            {start.x + ax, start.y + ay});
+                        has_interior = true;
+                    }
+                }
+            }
+        }
+    };
 
     while (true)
     {
         for (int y = 0; y < size_y - 1; y++)
-        {
             for (int x = 0; x < size_x - 1; x++)
-            {
-                const char &ch = lagoon.grid[y][x];
-                if (ch != '.')
-                {
-                    if (!has_interior || ch == 'I')
-                    {
-                        for (const auto &adj : forward)
-                        {
-                            const int ax = x + adj.x;
-                            const int ay = y + adj.y;
-                            char &ach = lagoon.grid[ay][ax];
-
-                            if (ach == '.')
-                            {
-                                ach = 'I';
-                                lagoon.points.push_back(
-                                    {start.x + ax, start.y + ay});
-                                has_interior = true;
-                            }
-                        }
-                    }
-                }
-            }
-        }
+                find_interior(forward, x, y);
 
         for (int y = size_y - 1; y > 0; y--)
-        {
             for (int x = size_x - 1; x > 0; x--)
-            {
-                const char &ch = lagoon.grid[y][x];
-                if (ch != '.')
-                {
-                    if (!has_interior || ch == 'I')
-                    {
-                        for (const auto &adj : backward)
-                        {
-                            const int ax = x + adj.x;
-                            const int ay = y + adj.y;
-                            char &ach = lagoon.grid[ay][ax];
-
-                            if (ach == '.')
-                            {
-                                ach = 'I';
-                                lagoon.points.push_back(
-                                    {start.x + ax, start.y + ay});
-                            }
-                        }
-                    }
-                }
-            }
-        }
+                find_interior(backward, x, y);
 
         if (cubic_meters == lagoon.cubic_meters())
             break;

@@ -57,6 +57,13 @@ int main(int argc, char *argv[])
 #define DPRINT3(x, y, z)
 #endif
 
-#define CHECK(exp) \
-    if (!(exp))    \
-        return {};
+#define CHECK(exp)                      \
+    if (!(exp))                         \
+    {                                   \
+        std::cout << "Ln "              \
+                  << __LINE__           \
+                  << ": CHECK failed: " \
+                  << #exp               \
+                  << std::endl;         \
+        return {};                      \
+    }
