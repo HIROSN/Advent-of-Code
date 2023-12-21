@@ -185,7 +185,7 @@ std::optional<uint64_t> Answer(std::ifstream &file)
     auto get_module = [](const std::string &name) -> std::unique_ptr<Module> &
     {
         static std::unique_ptr<Module> modules[26][27];
-        return modules[name[0] - 'a'][name.size() > 1 ? name[1] : 0];
+        return modules[name[0] - 'a'][name.size() > 1 ? name[1] - 'a' : 0];
     };
 
     auto trim_spaces = [](std::string &str) -> void
