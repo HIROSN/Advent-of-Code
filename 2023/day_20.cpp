@@ -197,12 +197,9 @@ std::optional<uint64_t> Answer(std::ifstream &file)
 
     Module broadcast("broadcaster");
 
-    auto read_input = [&](const std::string &line,
-                          bool make_destinations) -> void
+    auto read_name = [&](std::stringstream &ss,
+                         std::string &name, char &prefix) -> void
     {
-        std::stringstream ss(line);
-        std::string name, destination;
-        char prefix;
         ss >> name;
         skip<std::string>(ss);
 
@@ -211,42 +208,53 @@ std::optional<uint64_t> Answer(std::ifstream &file)
             prefix = name[0];
             name = name.substr(1);
         }
+    };
 
-        if (make_destinations)
+    auto make_modules = [&](const std::string &line) -> void
+    {
+        std::stringstream ss(line);
+        std::string name;
+        char prefix;
+
+        read_name(ss, name, prefix);
+        if (name == broadcast.name)
+            return;
+
+        auto &module = get_module(name);
+        switch (prefix)
         {
-            if (name == broadcast.name)
-                return;
-
-            auto &module = get_module(name);
-            switch (prefix)
-            {
-            case '%':
-                module = std::make_unique<Flipflop>(name);
-                break;
-            case '&':
-                module = std::make_unique<Conjunction>(name);
-                break;
-            }
+        case '%':
+            module = std::make_unique<Flipflop>(name);
+            break;
+        case '&':
+            module = std::make_unique<Conjunction>(name);
+            break;
         }
+    };
+
+    auto connect_modules = [&](const std::string &line) -> void
+    {
+        std::stringstream ss(line);
+        std::string name, destination;
+        char prefix;
+        Module *module;
+
+        read_name(ss, name, prefix);
+        if (name == broadcast.name)
+            module = &broadcast;
         else
-        {
-            Module *module;
-            if (name == broadcast.name)
-                module = &broadcast;
-            else
-                module = get_module(name).get();
+            module = get_module(name).get();
 
-            while (std::getline(ss, destination, ','))
-            {
-                trim_spaces(destination);
-                auto &dest_module = get_module(destination);
-                if (!dest_module)
-                    dest_module = std::make_unique<Module>(destination);
-                module->destinations.push_back(dest_module.get());
-                dest_module->senders.push_back(module);
-            }
-            // std::cout << *module;
+        while (std::getline(ss, destination, ','))
+        {
+            trim_spaces(destination);
+            auto &dest_module = get_module(destination);
+            if (!dest_module)
+                dest_module = std::make_unique<Module>(destination);
+            module->destinations.push_back(dest_module.get());
+            dest_module->senders.push_back(module);
         }
+        // DPRINTX_ENDL(*module);
     };
 
     std::vector<std::string> input;
@@ -256,10 +264,10 @@ std::optional<uint64_t> Answer(std::ifstream &file)
         input.push_back(str);
 
     for (const auto &line : input)
-        read_input(line, true);
+        make_modules(line);
 
     for (const auto &line : input)
-        read_input(line, false);
+        connect_modules(line);
 
     Button button(&broadcast);
     // std::cout << button;
