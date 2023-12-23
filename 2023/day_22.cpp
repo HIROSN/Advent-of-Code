@@ -202,7 +202,6 @@ std::optional<uint64_t> Answer(std::ifstream &file)
 {
     std::vector<BrickPtr> bricks;
     FloorMap floor;
-    Number size_x = 0, size_y = 0, size_z = 0, cubes_size = 0;
     std::string line;
 
     while (std::getline(file, line))
@@ -233,32 +232,17 @@ std::optional<uint64_t> Answer(std::ifstream &file)
             }
         }
 
+        DPRINTX_ENDL(*brick);
         bricks.push_back(std::move(brick));
     }
 
-    for (const auto &brick_ptr : bricks)
-    {
-        DPRINTX(*brick_ptr);
-        for (const auto &cube_ptr : brick_ptr->cubes)
-        {
-            DPRINTX(*cube_ptr);
-            cubes_size++;
-            size_x = std::max(size_x, cube_ptr->x);
-            size_y = std::max(size_y, cube_ptr->y);
-            size_z = std::max(size_z, cube_ptr->z + brick_ptr->vertical());
-        }
-        DPRINT_ENDL();
-    }
-
-    DPRINT3(size_x, size_y, size_z);
-    DPRINT2(bricks.size(), cubes_size);
-    DPRINT_ENDL();
     DPRINTX(floor);
 
     while (floor.fall())
         DPRINTX(floor);
 
     Number bricks_chosen_to_get_disintegrated = 0;
+
     for (auto &brick_ptr : bricks)
         if (floor.get_disintegrated(brick_ptr.get()))
             bricks_chosen_to_get_disintegrated++;
@@ -271,10 +255,7 @@ std::ostream &operator<<(std::ostream &out, const Cube &cube)
 #ifdef DPRINT_ON
     out << "{"
         << cube.x << "," << cube.y << "," << cube.z
-        << "}"
-        // << "->"
-        // << *cube.brick_ptr
-        ;
+        << "}";
 #endif
     return out;
 }
@@ -287,6 +268,8 @@ std::ostream &operator<<(std::ostream &out, const Brick &brick)
     out << "["
         << h.x - l.x + 1 << "," << h.y - l.y + 1 << "," << h.z - l.z + 1
         << "]";
+    for (auto &cube_ptr : brick.cubes)
+        out << *cube_ptr;
 #endif
     return out;
 }
@@ -309,10 +292,6 @@ std::ostream &operator<<(std::ostream &out, FloorMap &floor)
         }
         out << std::endl;
     }
-    Number cs = 0;
-    for (auto it : bs)
-        cs += it.second;
-    out << "{" << bs.size() << "," << cs << "}" << std::endl;
 #endif
     return out;
 }
