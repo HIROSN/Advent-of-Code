@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <optional>
@@ -50,15 +51,6 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-#ifndef DPRINT_ON
-#define DPRINT_ENDL()
-#define DPRINT(x)
-#define DPRINT2(x, y)
-#define DPRINT3(x, y, z)
-#define DPRINTX(any)
-#define DPRINTX_ENDL(any)
-#endif
-
 #define CHECK(exp)                      \
     if (!(exp))                         \
     {                                   \
@@ -67,5 +59,17 @@ int main(int argc, char *argv[])
                   << ": CHECK failed: " \
                   << #exp               \
                   << std::endl;         \
-        return {};                      \
+        std::exit(1);                   \
     }
+
+#ifdef DPRINT_ON
+#define DCHECK(exp) CHECK(exp)
+#else
+#define DCHECK(exp)
+#define DPRINT_ENDL()
+#define DPRINT(x)
+#define DPRINT2(x, y)
+#define DPRINT3(x, y, z)
+#define DPRINTX(any)
+#define DPRINTX_ENDL(any)
+#endif
