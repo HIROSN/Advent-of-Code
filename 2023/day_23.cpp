@@ -35,7 +35,6 @@ std::optional<uint64_t> Answer(std::ifstream &file)
     aoc::Point::priority = aoc::Point::Priority::Near;
     aoc::Traveler traveler({1, 0}, {size_x - 2, size_y - 1}, size_x, size_y);
     traveler.direction.type = aoc::Direction::Type::TurnFirst;
-    int steps_of_longest_hike = 0;
 
     auto get_offsets = [&](int x, int y) -> std::vector<aoc::Offset>
     {
@@ -74,9 +73,9 @@ std::optional<uint64_t> Answer(std::ifstream &file)
             if (traveler.valid(offset) && hiking_trails[ay][ax] != '#' &&
                 !traveler.is_visited(offset))
             {
-                if (longest_hike[ay][ax] < longest_hike[y][x] + 1)
+                if (longest_hike[ay][ax] < traveler.visited.size())
                 {
-                    longest_hike[ay][ax] = longest_hike[y][x] + 1;
+                    longest_hike[ay][ax] = traveler.visited.size();
                 }
 
                 auto traveler_copy = traveler;
@@ -84,21 +83,15 @@ std::optional<uint64_t> Answer(std::ifstream &file)
 
                 if (queued.find(traveler_copy) == queued.end())
                 {
-                    travelers.push({longest_hike[ay][ax], traveler_copy});
+                    travelers.push({traveler_copy.visited.size(),
+                                    traveler_copy});
                     queued[traveler_copy] = true;
                 }
             }
         }
 
         if (traveler.is_at_end())
-        {
-            int steps = traveler.visited.size() - 1;
-            if (steps > steps_of_longest_hike)
-                steps_of_longest_hike = steps;
-
             DPRINT3(traveler.get_path('.', 'O'), '.', 1);
-            DPRINTX_ENDL(steps);
-        }
 
         if (!travelers.empty())
         {
@@ -111,5 +104,5 @@ std::optional<uint64_t> Answer(std::ifstream &file)
     }
 
     DPRINT(longest_hike);
-    return steps_of_longest_hike;
+    return longest_hike[aoc::Traveler::end.y][aoc::Traveler::end.x];
 }
