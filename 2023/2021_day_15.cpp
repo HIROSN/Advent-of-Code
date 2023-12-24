@@ -37,7 +37,7 @@ std::optional<uint64_t> Answer(std::ifstream &file)
 
     AdjacentPointsQueueType entered_points;
     std::map<aoc::Traveler, bool> queued;
-    aoc::Traveler traveler({0, 0}, {size_x - 1, size_y - 1});
+    aoc::Traveler traveler({0, 0}, {size_x - 1, size_y - 1}, size_x, size_y);
     risks[0][0] = 0;
     entered[0][0] = true;
 
@@ -75,7 +75,7 @@ std::optional<uint64_t> Answer(std::ifstream &file)
         }
 
         if (traveler.is_at_end())
-            DPRINT3(traveler.get_path(), '.', 1);
+            DPRINT3(traveler.get_path('.'), '.', 1);
 
         if (!entered_points.empty())
         {

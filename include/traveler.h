@@ -3,7 +3,7 @@
 /*
 // ForwardFour
 //
-aoc::Traveler traveler({0, 0}, {100, 100});
+aoc::Traveler traveler({0, 0}, {99, 99}, 100, 100);
 DPRINTX_ENDL(traveler);
 for (const auto &offset : traveler.direction.offsets())
 {
@@ -19,7 +19,7 @@ for (const auto &offset : traveler.direction.offsets())
 
 // StraightFirst
 //
-aoc::Traveler traveler({0, 0}, {100, 100});
+aoc::Traveler traveler({0, 0}, {99, 99}, 100, 100);
 DPRINTX_ENDL(traveler);
 for (int i = 0; i < 4; i++)
 {
@@ -35,7 +35,7 @@ for (int i = 0; i < 4; i++)
 
 // BackwardFour
 //
-aoc::Traveler traveler({0, 0}, {100, 100});
+aoc::Traveler traveler({0, 0}, {99, 99}, 100, 100);
 traveler.direction.neighbors = aoc::BackwardFour();
 DPRINTX_ENDL(traveler);
 for (const auto &offset : traveler.direction.offsets())
@@ -52,7 +52,7 @@ for (const auto &offset : traveler.direction.offsets())
 
 // TurnFirst
 //
-aoc::Traveler traveler({0, 0}, {100, 100});
+aoc::Traveler traveler({0, 0}, {99, 99}, 100, 100);
 traveler.direction.type = aoc::Direction::Type::TurnFirst;
 DPRINTX_ENDL(traveler);
 for (const auto &offset : traveler.direction.offsets())
@@ -70,7 +70,7 @@ for (const auto &offset : traveler.direction.offsets())
 // Priority::Near
 //
 aoc::Point::priority = aoc::Point::Priority::Near;
-aoc::Traveler traveler({0, 0}, {size_x - 1, size_y - 1});
+aoc::Traveler traveler({0, 0}, {size_x - 1, size_y - 1}, size_x, size_y);
 
 std::priority_queue<std::pair<int, aoc::Traveler>,
                     std::vector<std::pair<int, aoc::Traveler>>,
@@ -91,7 +91,7 @@ std::priority_queue<std::pair<int, aoc::Traveler>,
 
 // Priority::Far
 //
-aoc::Traveler traveler({0, 0}, {size_x - 1, size_y - 1});
+aoc::Traveler traveler({0, 0}, {size_x - 1, size_y - 1}, size_x, size_y);
 
 std::priority_queue<std::pair<int, aoc::Traveler>,
                     std::vector<std::pair<int, aoc::Traveler>>,
@@ -320,10 +320,14 @@ namespace aoc
 
         Traveler() = default;
 
-        Traveler(const Point &point_start, const Point &point_end)
+        Traveler(const Point &ps, const Point &pe, Number sx, Number sy)
         {
-            start = point_start;
-            end = point_end;
+            x = ps.x;
+            y = ps.y;
+            start = ps;
+            end = pe;
+            size_x = sx;
+            size_y = sy;
             visited.push_back({direction.heading, start});
         }
 
@@ -331,8 +335,6 @@ namespace aoc
         {
             const auto ax = x + offset.x;
             const auto ay = y + offset.y;
-            const auto size_x = end.x - start.x + 1;
-            const auto size_y = end.y - start.y + 1;
             return ax >= 0 && ax < size_x &&
                    ay >= 0 && ay < size_y;
         }
@@ -356,12 +358,15 @@ namespace aoc
             return Point(x, y) == end;
         }
 
-        virtual std::map<std::pair<int, int>, char> get_path(char ch = 0) const
+        virtual std::map<std::pair<int, int>, char> get_path(
+            char ch_space, char ch_path = 0) const
         {
-            std::map<std::pair<int, int>, char> path;
+            std::map<std::pair<int, int>, char> path{
+                {{0, 0}, ch_space}, {{size_x - 1, size_y - 1}, ch_space}};
             for (auto it = visited.rbegin(); it != visited.rend(); it++)
                 path[{it->second.x, it->second.y}] =
-                    ch ? ch : (it->first.ch ? it->first.ch : ' ');
+                    ch_path ? ch_path : it->first.ch ? it->first.ch
+                                                     : ch_space;
             return path;
         }
 
@@ -387,6 +392,8 @@ namespace aoc
 
         static Point start;
         static Point end;
+        static Number size_x;
+        static Number size_y;
 
         friend std::ostream &operator<<(
             std::ostream &out, const aoc::Traveler &traveler);
@@ -394,6 +401,8 @@ namespace aoc
 
     Point Traveler::start = {};
     Point Traveler::end = {};
+    Number Traveler::size_x = 0;
+    Number Traveler::size_y = 0;
 
     std::ostream &operator<<(std::ostream &out, const Point &point)
     {
