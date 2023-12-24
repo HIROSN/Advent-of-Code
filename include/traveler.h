@@ -339,6 +339,15 @@ namespace aoc
                    ay >= 0 && ay < size_y;
         }
 
+        virtual bool is_visited(const Offset &offset) const
+        {
+            const Point point(x + offset.x, y + offset.y);
+            for (auto it : visited)
+                if (it.second == point)
+                    return true;
+            return false;
+        }
+
         virtual void visit(const Offset &offset)
         {
             x += offset.x;
