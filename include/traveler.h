@@ -142,6 +142,7 @@ namespace aoc
             case Priority::Near:
                 return x > right.x || (!(right.x > x) && y > right.y);
             }
+            return false;
         }
 
         virtual bool operator==(const Point &right) const
