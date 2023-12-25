@@ -1,114 +1,184 @@
 #pragma once
 
 /*
-// ForwardFour
+#include <debug_print.h>
+#include <main.h>
+#include <traveler.h>
+
 //
-aoc::Traveler traveler({0, 0}, {99, 99}, 100, 100);
-DPRINTX_ENDL(traveler);
-for (const auto &offset : traveler.direction.offsets())
-{
-    traveler.visit(offset);
-    DPRINTX_ENDL(traveler);
-}
-
-{0,0}
-{0,0}>{1,0}
-{0,0}>{1,0}v{1,1}
-{0,0}>{1,0}v{1,1}^{1,0}
-{0,0}>{1,0}v{1,1}^{1,0}<{0,0}
-
-// StraightFirst
+// ForwardFour (default)
 //
-aoc::Traveler traveler({0, 0}, {99, 99}, 100, 100);
-DPRINTX_ENDL(traveler);
-for (int i = 0; i < 4; i++)
 {
-    traveler.visit(traveler.direction.offsets()[0]);
+    aoc::Traveler traveler({0, 0}, {99, 99}, 100, 100);
     DPRINTX_ENDL(traveler);
+    for (const auto &offset : traveler.direction.offsets())
+    {
+        traveler.visit(offset);
+        DPRINTX_ENDL(traveler);
+    }
 }
+// {0,0}
+// {0,0}>{1,0}
+// {0,0}>{1,0}v{1,1}
+// {0,0}>{1,0}v{1,1}^{1,0}
+// {0,0}>{1,0}v{1,1}^{1,0}<{0,0}
 
-{0,0}
-{0,0}>{1,0}
-{0,0}>{1,0}>{2,0}
-{0,0}>{1,0}>{2,0}>{3,0}
-{0,0}>{1,0}>{2,0}>{3,0}>{4,0}
+//
+// StraightFirst (default)
+//
+{
+    aoc::Traveler traveler({0, 0}, {99, 99}, 100, 100);
+    DPRINTX_ENDL(traveler);
+    traveler.visit(aoc::Offset::Down);
+    DPRINTX_ENDL(traveler);
+    for (int i = 0; i < 3; i++)
+    {
+        traveler.visit(traveler.direction.offsets()[0]);
+        DPRINTX_ENDL(traveler);
+    }
+}
+// {0,0}
+// {0,0}v{0,1}
+// {0,0}v{0,1}v{0,2}
+// {0,0}v{0,1}v{0,2}v{0,3}
+// {0,0}v{0,1}v{0,2}v{0,3}v{0,4}
 
+//
 // BackwardFour
 //
-aoc::Traveler traveler({0, 0}, {99, 99}, 100, 100);
-traveler.direction.neighbors = aoc::BackwardFour();
-DPRINTX_ENDL(traveler);
-for (const auto &offset : traveler.direction.offsets())
 {
-    traveler.visit(offset);
+    aoc::Traveler traveler({0, 0}, {99, 99}, 100, 100);
+    traveler.direction.neighbors = aoc::BackwardFour();
     DPRINTX_ENDL(traveler);
+    for (const auto &offset : traveler.direction.offsets())
+    {
+        traveler.visit(offset);
+        DPRINTX_ENDL(traveler);
+    }
 }
+// {0,0}
+// {0,0}<{-1,0}
+// {0,0}<{-1,0}^{-1,-1}
+// {0,0}<{-1,0}^{-1,-1}v{-1,0}
+// {0,0}<{-1,0}^{-1,-1}v{-1,0}>{0,0}
 
-{0,0}
-{0,0}<{-1,0}
-{0,0}<{-1,0}^{-1,-1}
-{0,0}<{-1,0}^{-1,-1}v{-1,0}
-{0,0}<{-1,0}^{-1,-1}v{-1,0}>{0,0}
-
+//
 // TurnFirst
 //
-aoc::Traveler traveler({0, 0}, {99, 99}, 100, 100);
-traveler.direction.type = aoc::Direction::Type::TurnFirst;
-DPRINTX_ENDL(traveler);
-for (const auto &offset : traveler.direction.offsets())
 {
-    traveler.visit(offset);
+    aoc::Traveler traveler({0, 0}, {99, 99}, 100, 100);
+    traveler.direction.type = aoc::Direction::Type::TurnFirst;
     DPRINTX_ENDL(traveler);
+    for (const auto &offset : traveler.direction.offsets())
+    {
+        traveler.visit(offset);
+        DPRINTX_ENDL(traveler);
+    }
 }
+// {0,0}
+// {0,0}v{0,1}
+// {0,0}v{0,1}^{0,0}
+// {0,0}v{0,1}^{0,0}>{1,0}
+// {0,0}v{0,1}^{0,0}>{1,0}<{0,0}
 
-{0,0}
-{0,0}v{0,1}
-{0,0}v{0,1}^{0,0}
-{0,0}v{0,1}^{0,0}>{1,0}
-{0,0}v{0,1}^{0,0}>{1,0}<{0,0}
+//
+// Priority::Far (default)
+//
+{
+    aoc::Traveler traveler({0, 0}, {size_x - 1, size_y - 1}, size_x, size_y);
 
+    std::priority_queue<std::pair<int, aoc::Traveler>,
+                        std::vector<std::pair<int, aoc::Traveler>>,
+                        std::greater<std::pair<int, aoc::Traveler>>>;
+}
+// +----------+
+// | .........|
+// |v.........|
+// |v>>>>>>...|
+// |......v>..|
+// |.......v..|
+// |.......v>.|
+// |........v.|
+// |........v.|
+// |........v>|
+// |.........v|
+// +----------+
+// 40
+
+//
 // Priority::Near
 //
-aoc::Point::priority = aoc::Point::Priority::Near;
-aoc::Traveler traveler({0, 0}, {size_x - 1, size_y - 1}, size_x, size_y);
+{
+    aoc::Point::priority = aoc::Point::Priority::Near;
+    aoc::Traveler traveler({0, 0}, {size_x - 1, size_y - 1}, size_x, size_y);
 
-std::priority_queue<std::pair<int, aoc::Traveler>,
-                    std::vector<std::pair<int, aoc::Traveler>>,
-                    std::less<std::pair<int, aoc::Traveler>>>;
-+----------+
-| .^>>>.^>>|
-|v>>..v>>.v|
-|.........v|
-|......<<<v|
-|......v...|
-|...<<<v...|
-|<<<v...^>>|
-|v......^.v|
-|v.^>>.^>.v|
-|v>>.v>>..v|
-+----------+
-215
+    std::priority_queue<std::pair<int, aoc::Traveler>,
+                        std::vector<std::pair<int, aoc::Traveler>>,
+                        std::less<std::pair<int, aoc::Traveler>>>;
+}
+// +----------+
+// | .^>>>.^>>|
+// |v>>..v>>.v|
+// |.........v|
+// |......<<<v|
+// |......v...|
+// |...<<<v...|
+// |<<<v...^>>|
+// |v......^.v|
+// |v.^>>.^>.v|
+// |v>>.v>>..v|
+// +----------+
+// 215
 
-// Priority::Far
 //
-aoc::Traveler traveler({0, 0}, {size_x - 1, size_y - 1}, size_x, size_y);
+// Priority::Quick
+//
+{
+    aoc::Point::priority = aoc::Point::Priority::Quick;
+    aoc::Traveler traveler({0, 0}, {size_x - 1, size_y - 1}, size_x, size_y);
 
-std::priority_queue<std::pair<int, aoc::Traveler>,
-                    std::vector<std::pair<int, aoc::Traveler>>,
-                    std::greater<std::pair<int, aoc::Traveler>>>;
-+----------+
-| .........|
-|v.........|
-|v>>>>>>...|
-|......v>..|
-|.......v..|
-|.......v>.|
-|........v.|
-|........v.|
-|........v>|
-|.........v|
-+----------+
-40
+    std::priority_queue<std::pair<int, aoc::Traveler>,
+                        std::vector<std::pair<int, aoc::Traveler>>,
+                        std::greater<std::pair<int, aoc::Traveler>>>;
+}
+// +----------+
+// |.>>>>>....|
+// |.....v....|
+// |.....v>...|
+// |......v>..|
+// |.......v>.|
+// |........v.|
+// |........v.|
+// |........v.|
+// |........v.|
+// |........v>|
+// +----------+
+// 48
+
+//
+// Priority::Long
+//
+{
+    aoc::Point::priority = aoc::Point::Priority::Long;
+    aoc::Traveler traveler({0, 0}, {size_x - 1, size_y - 1}, size_x, size_y);
+
+    std::priority_queue<std::pair<int, aoc::Traveler>,
+                        std::vector<std::pair<int, aoc::Traveler>>,
+                        std::greater<std::pair<int, aoc::Traveler>>>;
+}
+// +----------+
+// |.>>>>>>>>>|
+// |.........v|
+// |.........v|
+// |.........v|
+// |.........v|
+// |.........v|
+// |.........v|
+// |.........v|
+// |.........v|
+// |.........v|
+// +----------+
+// 75
 */
 
 #include <map>
@@ -131,6 +201,8 @@ namespace aoc
         {
             Far,
             Near,
+            Quick,
+            Long,
         };
 
         virtual bool operator<(const Point &right) const
@@ -141,6 +213,8 @@ namespace aoc
                 return x < right.x || (!(right.x < x) && y < right.y);
             case Priority::Near:
                 return x > right.x || (!(right.x > x) && y > right.y);
+            case Priority::Quick:
+                return x * y < right.x * right.y;
             }
             return false;
         }
@@ -387,7 +461,14 @@ namespace aoc
 
         virtual bool operator<(const Traveler &right) const
         {
-            return Point(x, y) < Point(right.x, right.y);
+            switch (Point::priority)
+            {
+            case Point::Priority::Long:
+                return visited.size() < right.visited.size();
+            default:
+                return Point(x, y) < Point(right.x, right.y);
+            }
+            return false;
         }
 
         virtual bool operator==(const Traveler &right) const
