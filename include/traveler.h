@@ -261,7 +261,8 @@ namespace aoc
             return 0;
         }
 
-        virtual std::vector<Offset> offsets()
+        virtual std::vector<Offset> offsets(
+            int max_size = neighbors.number_of_offsets)
         {
             std::vector<Offset> offsets;
             const int index_straight = neighbor_index();
@@ -291,7 +292,7 @@ namespace aoc
                     break;
                 }
 
-                for (int i = 0; i < neighbors.number_of_offsets; i++)
+                for (int i = 0; i < max_size; i++)
                 {
                     if (i != index_straight &&
                         i != index_turn_right &&
@@ -362,9 +363,14 @@ namespace aoc
             y = ay;
         }
 
+        virtual Point is_at() const
+        {
+            return Point(x, y);
+        }
+
         virtual bool is_at_end() const
         {
-            return Point(x, y) == end;
+            return is_at() == end;
         }
 
         virtual std::map<std::pair<int, int>, char> get_path(
