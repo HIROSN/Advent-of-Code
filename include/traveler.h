@@ -215,6 +215,8 @@ namespace aoc
                 return x > right.x || (!(right.x > x) && y > right.y);
             case Priority::Quick:
                 return x * y < right.x * right.y;
+            default:
+                break;
             }
             return false;
         }
