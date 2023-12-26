@@ -412,8 +412,8 @@ namespace aoc
         {
             const auto ax = x + offset.x;
             const auto ay = y + offset.y;
-            return ax >= 0 && ax < size_x &&
-                   ay >= 0 && ay < size_y;
+            return ax >= start.x && ax < start.x + size_x &&
+                   ay >= start.y && ay < start.y + size_y;
         }
 
         virtual bool is_visited(const Offset &offset) const
@@ -453,7 +453,9 @@ namespace aoc
             char ch_space, char ch_path = 0) const
         {
             std::map<std::pair<int, int>, char> path{
-                {{0, 0}, ch_space}, {{size_x - 1, size_y - 1}, ch_space}};
+                {{0, 0}, ch_space},
+                {{start.x + size_x - 1, start.y + size_y - 1},
+                 ch_space}};
             for (auto it = visited.rbegin(); it != visited.rend(); it++)
                 path[{it->second.x, it->second.y}] =
                     ch_path ? ch_path : it->first.ch ? it->first.ch
