@@ -82,6 +82,44 @@
 // {0,0}v{0,1}^{0,0}>{1,0}<{0,0}
 
 //
+// TurnLeftFirst
+//
+{
+    aoc::Traveler traveler({0, 0}, {99, 99}, 100, 100);
+    traveler.direction.type = aoc::Direction::Type::TurnLeftFirst;
+    DPRINTX_ENDL(traveler);
+    for (const auto &offset : traveler.direction.offsets())
+    {
+        traveler.visit(offset);
+        DPRINTX_ENDL(traveler);
+    }
+}
+// {0,0}
+// {0,0}^{0,-1}
+// {0,0}^{0,-1}>{1,-1}
+// {0,0}^{0,-1}>{1,-1}v{1,0}
+// {0,0}^{0,-1}>{1,-1}v{1,0}<{0,0}
+
+//
+// TurnRightFirst
+//
+{
+    aoc::Traveler traveler({0, 0}, {99, 99}, 100, 100);
+    traveler.direction.type = aoc::Direction::Type::TurnRightFirst;
+    DPRINTX_ENDL(traveler);
+    for (const auto &offset : traveler.direction.offsets())
+    {
+        traveler.visit(offset);
+        DPRINTX_ENDL(traveler);
+    }
+}
+// {0,0}
+// {0,0}v{0,1}
+// {0,0}v{0,1}>{1,1}
+// {0,0}v{0,1}>{1,1}^{1,0}
+// {0,0}v{0,1}>{1,1}^{1,0}<{0,0}
+
+//
 // Priority::Far (default)
 //
 {
@@ -321,6 +359,8 @@ namespace aoc
         {
             StraightFirst,
             TurnFirst,
+            TurnLeftFirst,
+            TurnRightFirst,
         };
 
         Direction()
@@ -365,6 +405,16 @@ namespace aoc
                     offsets.push_back(neighbors.offsets[index_turn_right]);
                     offsets.push_back(neighbors.offsets[index_turn_left]);
                     offsets.push_back(neighbors.offsets[index_straight]);
+                    break;
+                case Type::TurnLeftFirst:
+                    offsets.push_back(neighbors.offsets[index_turn_left]);
+                    offsets.push_back(neighbors.offsets[index_straight]);
+                    offsets.push_back(neighbors.offsets[index_turn_right]);
+                    break;
+                case Type::TurnRightFirst:
+                    offsets.push_back(neighbors.offsets[index_turn_right]);
+                    offsets.push_back(neighbors.offsets[index_straight]);
+                    offsets.push_back(neighbors.offsets[index_turn_left]);
                     break;
                 }
 
