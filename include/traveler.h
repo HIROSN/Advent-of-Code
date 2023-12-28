@@ -475,6 +475,11 @@ namespace aoc
             return false;
         }
 
+        virtual Point next_at(const Offset &offset) const
+        {
+            return Point(x + offset.x, y + offset.y);
+        }
+
         virtual void visit(const Offset &offset)
         {
             x += offset.x;

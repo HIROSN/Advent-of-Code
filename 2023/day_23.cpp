@@ -1,4 +1,5 @@
 // #include <debug_print.h>
+// #define DTIMER_ON
 #include <main.h>
 #include <traveler.h>
 
@@ -16,14 +17,23 @@ std::optional<uint64_t> Answer(std::ifstream &file)
     while (file >> line)
         hiking_trails.push_back(line);
 
-    int size_x = line.size();
-    int size_y = hiking_trails.size();
     DPRINT(hiking_trails);
 
-    std::vector<std::vector<int>> longest_hike;
+    const int size_x = line.size();
+    const int size_y = hiking_trails.size();
 
-    for (int y = 0; y < size_y; y++)
-        longest_hike.emplace_back(size_x, 0);
+    std::vector<std::vector<int>> hiking_map(
+        size_y, std::vector<int>(size_x, 0));
+
+    auto tile_at = [&](const aoc::Point &p) -> char
+    {
+        return hiking_trails[p.y][p.x];
+    };
+
+    auto longest_hike = [&](const aoc::Point &p) -> int &
+    {
+        return hiking_map[p.y][p.x];
+    };
 
     using TravelerQueue =
         std::priority_queue<std::pair<int, aoc::Traveler>,
@@ -32,60 +42,44 @@ std::optional<uint64_t> Answer(std::ifstream &file)
 
     TravelerQueue travelers;
     std::map<aoc::Traveler, bool> queued;
-    aoc::Point::priority = aoc::Point::Priority::Near;
-    aoc::Traveler traveler({1, 0}, {size_x - 2, size_y - 1}, size_x, size_y);
-    traveler.direction.type = aoc::Direction::Type::TurnFirst;
 
-    auto get_offsets = [&](int x, int y) -> std::vector<aoc::Offset>
+    const aoc::Point start{1, 0};
+    const aoc::Point end{size_x - 2, size_y - 1};
+    aoc::Traveler traveler(start, end, size_x, size_y);
+
+    auto get_offsets = [&](const aoc::Point &p) -> std::vector<aoc::Offset>
     {
-        std::vector<aoc::Offset> offsets;
-        switch (hiking_trails[y][x])
-        {
-        case '^':
-            offsets = {aoc::Offset::Up};
-            break;
-        case '>':
-            offsets = {aoc::Offset::Right};
-            break;
-        case 'v':
-            offsets = {aoc::Offset::Down};
-            break;
-        case '<':
-            offsets = {aoc::Offset::Left};
-            break;
-        default:
-            offsets = traveler.direction.offsets();
-            break;
-        }
-        return offsets;
+        const std::map<char, std::vector<aoc::Offset>> slopes{
+            {'^', {aoc::Offset::Up}},
+            {'>', {aoc::Offset::Right}},
+            {'v', {aoc::Offset::Down}},
+            {'<', {aoc::Offset::Left}}};
+
+        auto it = slopes.find(tile_at(p));
+        if (it != slopes.end())
+            return it->second;
+
+        return traveler.direction.offsets(3);
     };
 
     while (true)
     {
-        const int &x = traveler.x;
-        const int &y = traveler.y;
-
-        for (const auto &offset : get_offsets(x, y))
+        for (const auto &offset : get_offsets(traveler.is_at()))
         {
-            int ax = x + offset.x;
-            int ay = y + offset.y;
-
-            if (traveler.valid(offset) && hiking_trails[ay][ax] != '#' &&
+            if (traveler.valid(offset) &&
+                tile_at(traveler.next_at(offset)) != '#' &&
                 !traveler.is_visited(offset))
             {
-                if (longest_hike[ay][ax] < traveler.visited.size())
-                {
-                    longest_hike[ay][ax] = traveler.visited.size();
-                }
+                auto next = traveler;
+                next.visit(offset);
 
-                auto traveler_copy = traveler;
-                traveler_copy.visit(offset);
+                if (longest_hike(next.is_at()) < traveler.visited.size())
+                    longest_hike(next.is_at()) = traveler.visited.size();
 
-                if (queued.find(traveler_copy) == queued.end())
+                if (queued.find(next) == queued.end())
                 {
-                    travelers.push({traveler_copy.visited.size(),
-                                    traveler_copy});
-                    queued[traveler_copy] = true;
+                    travelers.push({next.visited.size(), next});
+                    queued[next] = true;
                 }
             }
         }
@@ -103,6 +97,6 @@ std::optional<uint64_t> Answer(std::ifstream &file)
         break;
     }
 
-    DPRINT(longest_hike);
-    return longest_hike[aoc::Traveler::end.y][aoc::Traveler::end.x];
+    DPRINT(hiking_map);
+    return longest_hike(end);
 }

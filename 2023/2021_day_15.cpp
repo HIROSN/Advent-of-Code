@@ -1,4 +1,5 @@
 // #include <debug_print.h>
+// #define DTIMER_ON
 #include <main.h>
 #include <traveler.h>
 
@@ -55,25 +56,22 @@ std::optional<uint64_t> Answer(std::ifstream &file)
     {
         for (const auto &offset : traveler.direction.offsets(3))
         {
-            if (traveler.valid(offset) && !traveler.is_visited(offset))
+            if (traveler.valid(offset) && !entered[traveler.next_at(offset)])
             {
                 auto next = traveler;
                 next.visit(offset);
 
-                if (!entered[next.is_at()])
+                if (risks(next.is_at()) >
+                    risks(traveler.is_at()) + risk_at(next.is_at()))
                 {
-                    if (risks(next.is_at()) >
-                        risks(traveler.is_at()) + risk_at(next.is_at()))
-                    {
-                        risks(next.is_at()) =
-                            risks(traveler.is_at()) + risk_at(next.is_at());
-                    }
+                    risks(next.is_at()) =
+                        risks(traveler.is_at()) + risk_at(next.is_at());
+                }
 
-                    if (queued.find(next) == queued.end())
-                    {
-                        traveler_queue.push({risks(next.is_at()), next});
-                        queued[next] = true;
-                    }
+                if (queued.find(next) == queued.end())
+                {
+                    traveler_queue.push({risks(next.is_at()), next});
+                    queued[next] = true;
                 }
             }
         }
