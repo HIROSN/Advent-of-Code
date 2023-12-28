@@ -3,6 +3,7 @@
 
 #ifndef DTIMER_ON
 #define DTIMER_ON
+#endif
 
 #include <algorithm>
 #include <climits>

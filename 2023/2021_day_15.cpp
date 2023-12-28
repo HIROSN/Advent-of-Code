@@ -1,5 +1,5 @@
-// #include <debug_print.h>
 // #define DTIMER_ON
+// #include <debug_print.h>
 #include <main.h>
 #include <traveler.h>
 
