@@ -17,59 +17,63 @@ std::optional<uint64_t> Answer(std::ifstream &file)
     while (file >> line)
         cavern.push_back(line);
 
-    int size_x = line.size();
-    int size_y = cavern.size();
     DPRINT(cavern);
 
-    std::vector<std::vector<int>> risks;
-    std::vector<std::vector<bool>> entered;
+    const int size_x = line.size();
+    const int size_y = cavern.size();
 
-    for (int y = 0; y < size_y; y++)
+    std::vector<std::vector<int>> risk_map(
+        size_y, std::vector<int>(size_x, INT_MAX));
+
+    auto risk_at = [&](const aoc::Point &p) -> int
     {
-        risks.emplace_back(size_x, INT_MAX);
-        entered.emplace_back(size_x, false);
-    }
+        return cavern[p.y][p.x] - '0';
+    };
 
-    using AdjacentPointsQueueType =
+    auto risks = [&](const aoc::Point &p) -> int &
+    {
+        return risk_map[p.y][p.x];
+    };
+
+    using TravelerQueue =
         std::priority_queue<std::pair<int, aoc::Traveler>,
                             std::vector<std::pair<int, aoc::Traveler>>,
                             std::greater<std::pair<int, aoc::Traveler>>>;
 
-    AdjacentPointsQueueType entered_points;
+    TravelerQueue traveler_queue;
     std::map<aoc::Traveler, bool> queued;
-    aoc::Traveler traveler({0, 0}, {size_x - 1, size_y - 1}, size_x, size_y);
-    risks[0][0] = 0;
-    entered[0][0] = true;
+    std::map<aoc::Point, bool> entered;
 
-    auto risk_at = [&](int x, int y) -> int
-    {
-        return cavern[y][x] - '0';
-    };
+    const aoc::Point start{0, 0};
+    const aoc::Point end{size_x - 1, size_y - 1};
+
+    risks(start) = 0;
+    entered[start] = true;
+    aoc::Traveler traveler(start, end, size_x, size_y);
 
     while (true)
     {
-        const int &x = traveler.x;
-        const int &y = traveler.y;
-
-        for (const auto &offset : traveler.direction.offsets())
+        for (const auto &offset : traveler.direction.offsets(3))
         {
-            int ax = x + offset.x;
-            int ay = y + offset.y;
-
-            if (traveler.valid(offset) && !entered[ay][ax])
+            if (traveler.valid(offset) && !traveler.is_visited(offset))
             {
-                if (risks[ay][ax] > risks[y][x] + risk_at(ax, ay))
-                {
-                    risks[ay][ax] = risks[y][x] + risk_at(ax, ay);
-                }
+                auto next = traveler;
+                next.visit(offset);
 
-                auto traveler_copy = traveler;
-                traveler_copy.visit(offset);
-
-                if (queued.find(traveler_copy) == queued.end())
+                if (!entered[next.is_at()])
                 {
-                    entered_points.push({risks[ay][ax], traveler_copy});
-                    queued[traveler_copy] = true;
+                    if (risks(next.is_at()) >
+                        risks(traveler.is_at()) + risk_at(next.is_at()))
+                    {
+                        risks(next.is_at()) =
+                            risks(traveler.is_at()) + risk_at(next.is_at());
+                    }
+
+                    if (queued.find(next) == queued.end())
+                    {
+                        traveler_queue.push({risks(next.is_at()), next});
+                        queued[next] = true;
+                    }
                 }
             }
         }
@@ -77,17 +81,17 @@ std::optional<uint64_t> Answer(std::ifstream &file)
         if (traveler.is_at_end())
             DPRINT3(traveler.get_path('.'), '.', 1);
 
-        if (!entered_points.empty())
+        if (!traveler_queue.empty())
         {
-            traveler = entered_points.top().second;
-            entered_points.pop();
+            traveler = traveler_queue.top().second;
+            traveler_queue.pop();
             queued.erase(traveler);
-            entered[y][x] = true;
+            entered[traveler.is_at()] = true;
             continue;
         }
         break;
     }
 
-    // DPRINT(risks);
-    return risks[size_y - 1][size_x - 1];
+    // DPRINT(risk_map);
+    return risks(end);
 }
