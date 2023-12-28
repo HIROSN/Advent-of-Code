@@ -34,11 +34,11 @@ int main(int argc, char *argv[])
         args.emplace_back(argv[i]);
     }
 
-#ifdef DPRINT_ON
+#ifdef DTIMER_ON
     aoc::Timer timer;
 #endif
     auto answer = Answer(file);
-#ifdef DPRINT_ON
+#ifdef DTIMER_ON
     std::cout << timer.elapsed() << " [sec.]" << std::endl;
 #endif
 

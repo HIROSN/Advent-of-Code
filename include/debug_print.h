@@ -1,6 +1,9 @@
 #ifndef DPRINT_ON
 #define DPRINT_ON
 
+#ifndef DTIMER_ON
+#define DTIMER_ON
+
 #include <algorithm>
 #include <climits>
 #include <iostream>
