@@ -68,13 +68,12 @@ std::optional<uint64_t> Answer(std::ifstream &file)
         {
             if (traveler.valid(offset) &&
                 tile_at(traveler.next_at(offset)) != '#' &&
-                !traveler.is_visited(offset))
+                !traveler.is_visited(offset) &&
+                longest_hike(traveler.next_at(offset)) < traveler.visited.size())
             {
                 auto next = traveler;
                 next.visit(offset);
-
-                if (longest_hike(next.is_at()) < traveler.visited.size())
-                    longest_hike(next.is_at()) = traveler.visited.size();
+                longest_hike(next.is_at()) = traveler.visited.size();
 
                 if (queued.find(next) == queued.end())
                 {
