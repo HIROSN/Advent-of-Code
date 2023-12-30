@@ -3,9 +3,8 @@
 #include <main.h>
 #include <traveler.h>
 
-#include <functional>
 #include <map>
-#include <queue>
+#include <stack>
 #include <utility>
 #include <vector>
 
@@ -35,12 +34,7 @@ std::optional<uint64_t> Answer(std::ifstream &file)
         return hiking_map[p.y][p.x];
     };
 
-    using TravelerQueue =
-        std::priority_queue<std::pair<int, aoc::Traveler>,
-                            std::vector<std::pair<int, aoc::Traveler>>,
-                            std::less<std::pair<int, aoc::Traveler>>>;
-
-    TravelerQueue travelers;
+    std::stack<std::pair<int, aoc::Traveler>> travelers;
     std::map<aoc::Traveler, bool> queued;
 
     const aoc::Point start{1, 0};
