@@ -12,11 +12,6 @@ struct Condition
     std::string springs;
     std::vector<int> groups;
 
-    bool operator<(const Condition &right) const
-    {
-        return springs > right.springs;
-    }
-
     Condition operator+(const Condition &right) const
     {
         auto copy = *this;
