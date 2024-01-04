@@ -330,14 +330,14 @@ std::optional<uint64_t> Answer(std::ifstream &file)
     return low_pulses * high_pulses;
 #else
     std::vector<Conjunction *> conjunctions;
-    DCHECK(machine.rx->senders.size() == 1);
+    CHECK(machine.rx->senders.size() == 1);
 
     for (auto *module : machine.rx->senders[0]->senders)
     {
         DCHECK(module->prefix == '&');
-        DCHECK(module->senders.size() == 1);
+        CHECK(module->senders.size() == 1);
         auto *sender = module->senders[0];
-        DCHECK(sender->prefix == '&');
+        CHECK(sender->prefix == '&');
         auto *conjunction = reinterpret_cast<Conjunction *>(sender);
         DPRINTX(*conjunction);
         conjunction->first_low_pulse = 0;
