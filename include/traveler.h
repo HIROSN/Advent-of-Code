@@ -219,11 +219,14 @@
 // 75
 */
 
+#include <iostream>
 #include <map>
 #include <utility>
 #include <vector>
 
+#ifndef Number
 #define Number int
+#endif
 
 namespace aoc
 {
