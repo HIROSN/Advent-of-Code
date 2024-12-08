@@ -50,23 +50,11 @@ std::optional<uint64_t> Answer(std::ifstream &file)
                 const int dx2 = x2 - x1;
                 const int dy2 = y2 - y1;
 
-                for (int n = 0; true; n++)
-                {
-                    Point a{x1 + dx1 * n, y1 + dy1 * n};
-                    if (is_antinode(a))
-                        antinodes[a]++;
-                    else
-                        break;
-                }
+                for (int n = 0; is_antinode({x1 + dx1 * n, y1 + dy1 * n}); n++)
+                    antinodes[{x1 + dx1 * n, y1 + dy1 * n}]++;
 
-                for (int n = 0; true; n++)
-                {
-                    Point a{x2 + dx2 * n, y2 + dy2 * n};
-                    if (is_antinode(a))
-                        antinodes[a]++;
-                    else
-                        break;
-                }
+                for (int n = 0; is_antinode({x2 + dx2 * n, y2 + dy2 * n}); n++)
+                    antinodes[{x2 + dx2 * n, y2 + dy2 * n}]++;
             }
         }
     }
