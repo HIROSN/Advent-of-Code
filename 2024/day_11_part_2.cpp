@@ -79,12 +79,9 @@ std::optional<uint64_t> Answer(std::ifstream &file)
     const int total_blinking = 75;
     InfiniteCorridors corridors;
     std::list<uint64_t> initial_arrangement;
-    uint64_t number, total_stones = 0;
+    uint64_t stone, total_stones = 0;
 
-    while (file >> number)
-        initial_arrangement.push_back(number);
-
-    for (auto stone : initial_arrangement)
+    while (file >> stone)
         total_stones += corridors.explore(stone, total_blinking);
 
     return total_stones;
