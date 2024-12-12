@@ -33,10 +33,10 @@ namespace aoc
         }
     };
 
-    std::vector<Pixel> neighbors(int four_or_eight)
+    std::vector<Pixel> neighbors(int number_of_neighbors)
     {
         std::vector<Pixel> pels;
-        switch (four_or_eight)
+        switch (number_of_neighbors)
         {
         case 4:
             return {{0, -1}, {1, 0}, {0, 1}, {-1, 0}};
@@ -49,6 +49,10 @@ namespace aoc
                     {0, 1},
                     {-1, 1},
                     {-1, 0}};
+        case 2:
+            return {{1, 0}, {0, 1}};
+        case -2:
+            return {{-1, 0}, {0, -1}};
         }
         return {};
     }
@@ -62,15 +66,18 @@ namespace aoc
         const int size_y = image.size();
         NumberedImage labeled(size_y, std::vector<Number>(size_x, 0));
         std::map<Number, unsigned int> label_count;
+        bool changed = true;
         int labels = 0;
 
-        while (true)
+        auto scan_for_change = [&](const Pixel &start,
+                                   const Pixel &end,
+                                   const int step)
         {
             bool changed = false;
 
-            for (int y = 0; y < size_y; y++)
+            for (int y = start.y; y != end.y; y += step)
             {
-                for (int x = 0; x < size_x; x++)
+                for (int x = start.x; x != end.x; x += step)
                 {
                     if (!labeled[y][x])
                     {
@@ -79,75 +86,32 @@ namespace aoc
                             label_count[labeled[y][x]]++;
                     }
 
-                    if (x < size_x - 1 && image[y][x + 1] == image[y][x] &&
-                        labeled[y][x + 1] < labeled[y][x])
+                    for (auto n : neighbors(step * 2))
                     {
-                        if (renumber)
-                        {
-                            label_count[labeled[y][x]]++;
-                            label_count[labeled[y][x + 1]]--;
-                        }
-                        labeled[y][x + 1] = labeled[y][x];
-                        changed = true;
-                    }
+                        const int nx = x + n.x;
+                        const int ny = y + n.y;
 
-                    if (y < size_y - 1 && image[y + 1][x] == image[y][x] &&
-                        labeled[y + 1][x] < labeled[y][x])
-                    {
-                        if (renumber)
+                        if (nx >= 0 && nx < size_x && ny >= 0 && ny < size_y &&
+                            image[ny][nx] == image[y][x] && labeled[ny][nx] < labeled[y][x])
                         {
-                            label_count[labeled[y][x]]++;
-                            label_count[labeled[y + 1][x]]--;
+                            if (renumber)
+                            {
+                                label_count[labeled[y][x]]++;
+                                label_count[labeled[ny][nx]]--;
+                            }
+                            labeled[ny][nx] = labeled[y][x];
+                            changed = true;
                         }
-                        labeled[y + 1][x] = labeled[y][x];
-                        changed = true;
                     }
                 }
             }
 
-            if (!changed)
-                break;
+            return changed;
+        };
 
-            for (int y = size_y - 1; y >= 0; y--)
-            {
-                for (int x = size_x - 1; x >= 0; x--)
-                {
-                    if (!labeled[y][x])
-                    {
-                        labeled[y][x] = ++labels;
-                        if (renumber)
-                            label_count[labeled[y][x]]++;
-                    }
-
-                    if (x > 0 && image[y][x - 1] == image[y][x] &&
-                        labeled[y][x - 1] < labeled[y][x])
-                    {
-                        if (renumber)
-                        {
-                            label_count[labeled[y][x]]++;
-                            label_count[labeled[y][x - 1]]--;
-                        }
-                        labeled[y][x - 1] = labeled[y][x];
-                        changed = true;
-                    }
-
-                    if (y > 0 && image[y - 1][x] == image[y][x] &&
-                        labeled[y - 1][x] < labeled[y][x])
-                    {
-                        if (renumber)
-                        {
-                            label_count[labeled[y][x]]++;
-                            label_count[labeled[y - 1][x]]--;
-                        }
-                        labeled[y - 1][x] = labeled[y][x];
-                        changed = true;
-                    }
-                }
-            }
-
-            if (!changed)
-                break;
-        }
+        while (changed)
+            changed = scan_for_change({0, 0}, {size_x, size_y}, +1) &&
+                      scan_for_change({size_x - 1, size_y - 1}, {-1, -1}, -1);
 
         if (renumber)
         {
