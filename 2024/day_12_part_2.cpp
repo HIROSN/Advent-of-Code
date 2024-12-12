@@ -17,7 +17,6 @@ std::optional<uint64_t> Answer(std::ifstream &file)
     const int size_x = line.size();
     const int size_y = garden.size();
     auto labeled = aoc::labeling(garden);
-    DPRINT(labeled);
     std::unordered_map<int, uint64_t> area;
     std::unordered_map<int, uint64_t> perimeter;
     std::unordered_map<int, char> label_plants_map;
