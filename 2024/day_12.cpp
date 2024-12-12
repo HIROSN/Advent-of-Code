@@ -38,17 +38,9 @@ std::optional<uint64_t> Answer(std::ifstream &file)
             label_plants_map[label] = garden[y][x];
             area[label]++;
 
-            if (get_label(x, y - 1) != label)
-                perimeter[label]++;
-
-            if (get_label(x + 1, y) != label)
-                perimeter[label]++;
-
-            if (get_label(x, y + 1) != label)
-                perimeter[label]++;
-
-            if (get_label(x - 1, y) != label)
-                perimeter[label]++;
+            for (auto n : aoc::neighbors(4))
+                if (get_label(x + n.x, y + n.y) != label)
+                    perimeter[label]++;
         }
     }
 

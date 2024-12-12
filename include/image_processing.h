@@ -2,16 +2,56 @@
 
 #include <map>
 #include <string>
+#include <utility>
 #include <vector>
 
 #ifndef Number
 #define Number int
 #endif
 
+#ifndef X
+#define X 0
+#endif
+
+#ifndef Y
+#define Y 1
+#endif
+
 namespace aoc
 {
     using Image = std::vector<std::string>;
     using NumberedImage = std::vector<std::vector<Number>>;
+
+    struct Pixel
+    {
+        Number x = 0;
+        Number y = 0;
+
+        std::pair<Number, Number> as_pair()
+        {
+            return {x, y};
+        }
+    };
+
+    std::vector<Pixel> neighbors(int four_or_eight)
+    {
+        std::vector<Pixel> pels;
+        switch (four_or_eight)
+        {
+        case 4:
+            return {{0, -1}, {1, 0}, {0, 1}, {-1, 0}};
+        case 8:
+            return {{-1, -1},
+                    {0, -1},
+                    {1, -1},
+                    {1, 0},
+                    {1, 1},
+                    {0, 1},
+                    {-1, 1},
+                    {-1, 0}};
+        }
+        return {};
+    }
 
     NumberedImage labeling(const NumberedImage &image, bool renumber = true)
     {
