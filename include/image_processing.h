@@ -128,6 +128,7 @@ namespace aoc
                         labeled[y][x] = new_label[labeled[y][x]];
         }
 
+        DPRINT(labeled);
         return labeled;
     }
 
