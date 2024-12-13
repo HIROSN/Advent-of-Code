@@ -29,6 +29,21 @@ std::optional<uint64_t> Answer(std::ifstream &file)
             return 0;
     };
 
+    struct Pattern
+    {
+        aoc::Pixel outside;
+        aoc::Pixel neighbor;
+        aoc::Pixel outside_neighbor;
+        aoc::Pixel size;
+    };
+
+    const std::vector<Pattern> patterns{
+        {{0, -1}, {1, 0}, {1, -1}, {size_x - 1, size_y}},
+        {{1, 0}, {0, 1}, {1, 1}, {size_x, size_y - 1}},
+        {{0, 1}, {1, 0}, {1, 1}, {size_x - 1, size_y}},
+        {{-1, 0}, {0, 1}, {-1, 1}, {size_x, size_y - 1}},
+    };
+
     for (int y = 0; y < size_y; y++)
     {
         for (int x = 0; x < size_x; x++)
@@ -37,51 +52,20 @@ std::optional<uint64_t> Answer(std::ifstream &file)
             label_plants_map[label] = garden[y][x];
             area[label]++;
 
-            if (get_label(x, y - 1) != label)
+            for (const auto &p : patterns)
             {
-                perimeter[label]++;
-
-                if (x < size_x - 1 &&
-                    get_label(x + 1, y) == label &&
-                    get_label(x + 1, y - 1) != label)
+                if (get_label(x + p.outside.x, y + p.outside.y) != label)
                 {
-                    perimeter[label]--;
-                }
-            }
+                    perimeter[label]++;
 
-            if (get_label(x + 1, y) != label)
-            {
-                perimeter[label]++;
-
-                if (y < size_y - 1 &&
-                    get_label(x, y + 1) == label &&
-                    get_label(x + 1, y + 1) != label)
-                {
-                    perimeter[label]--;
-                }
-            }
-
-            if (get_label(x, y + 1) != label)
-            {
-                perimeter[label]++;
-
-                if (x < size_x - 1 &&
-                    get_label(x + 1, y) == label &&
-                    get_label(x + 1, y + 1) != label)
-                {
-                    perimeter[label]--;
-                }
-            }
-
-            if (get_label(x - 1, y) != label)
-            {
-                perimeter[label]++;
-
-                if (y < size_y - 1 &&
-                    get_label(x, y + 1) == label &&
-                    get_label(x - 1, y + 1) != label)
-                {
-                    perimeter[label]--;
+                    if (x < p.size.x && y < p.size.y &&
+                        get_label(x + p.neighbor.x,
+                                  y + p.neighbor.y) == label &&
+                        get_label(x + p.outside_neighbor.x,
+                                  y + p.outside_neighbor.y) != label)
+                    {
+                        perimeter[label]--;
+                    }
                 }
             }
         }
