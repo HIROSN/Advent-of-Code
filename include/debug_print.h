@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <climits>
+#include <cstdint>
 #include <iostream>
 #include <map>
 #include <sstream>
