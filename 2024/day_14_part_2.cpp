@@ -105,7 +105,7 @@ std::optional<uint64_t> Answer(std::ifstream &file)
 
         std::list<int> frame_x, frame_y;
         std::map<std::pair<int, int>, char> tree;
-        bool has_frame = true;
+        int frame_size_x = 0, frame_size_y = 0;
 
         for (auto it : histograms.x)
             if (it.second == top2_x.first || it.second == top2_x.second)
@@ -134,19 +134,19 @@ std::optional<uint64_t> Answer(std::ifstream &file)
                     tree[{x, y}]++;
                 else
                     tree[{x, y}] = '1';
+
+                if (x == start_x || x == end_x)
+                    frame_size_y++;
+                if (y == start_y || y == end_y)
+                    frame_size_x++;
             }
         }
 
-        for (int x = start_x; has_frame && x <= end_x; x++)
-            has_frame = tree.find({x, start_y}) != tree.end() &&
-                        tree.find({x, end_y}) != tree.end();
-
-        for (int y = start_y; has_frame && y <= end_y; y++)
-            has_frame = tree.find({start_x, y}) != tree.end() &&
-                        tree.find({end_x, y}) != tree.end();
-
-        if (!has_frame)
+        if (frame_size_x / 2 != end_x - start_x + 1 ||
+            frame_size_y / 2 != end_y - start_y + 1)
+        {
             continue;
+        }
 
         for (auto row : mpc_to_vs(tree, '.', 1))
             std::cout << row << std::endl;
