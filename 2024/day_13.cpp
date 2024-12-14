@@ -42,9 +42,9 @@ std::optional<uint64_t> Answer(std::ifstream &file)
         }
 
         std::getline(file, line);
-        DPRINT2(ax, ay);
-        DPRINT2(bx, by);
-        DPRINT2(px, py);
+        DPRINTX2(ax, ay);
+        DPRINTX2(bx, by);
+        DPRINTX2(px, py);
 
         int dividend = ax * py - ay * px;
         int divisor = ax * by - ay * bx;
@@ -68,7 +68,7 @@ std::optional<uint64_t> Answer(std::ifstream &file)
         }
 
         const int a_button = dividend / divisor;
-        DPRINT2(a_button, b_button);
+        DPRINTX2(a_button, b_button);
 
         if (a_button < 0 || a_button > 100 || b_button < 0 || b_button > 100)
         {
