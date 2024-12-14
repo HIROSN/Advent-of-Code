@@ -180,7 +180,7 @@ void DPRINT2(const std::map<std::pair<int, int>, char> &mpc, char ch)
     DPRINT3(mpc, ch, -1);
 }
 
-void DPRINT2(int64_t x, int64_t y)
+void DPRINT2(int x, int y)
 {
     std::cout << "(" << x << "," << y << ")";
 }
@@ -190,7 +190,7 @@ void DPRINT(const std::pair<int, int> &point)
     DPRINT2(point.first, point.second);
 }
 
-void DPRINT3(int64_t x, int64_t y, int64_t z)
+void DPRINT3(int x, int y, int z)
 {
     std::cout << x << "," << y << "," << z;
 }
