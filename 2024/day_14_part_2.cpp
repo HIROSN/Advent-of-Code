@@ -146,7 +146,7 @@ std::optional<uint64_t> Answer(std::ifstream &file)
                 const int &x = robot.px;
                 const int &y = robot.py;
 
-                if (x > start_x && x < end_x && y > start_y && y < end_y)
+                if (x >= start_x && x <= end_x && y >= start_y && y <= end_y)
                 {
                     if (tree[{x, y}])
                         tree[{x, y}]++;
@@ -155,7 +155,9 @@ std::optional<uint64_t> Answer(std::ifstream &file)
                 }
             }
 
-            DPRINT3(tree, '.', 1);
+            for (auto row : mpc_to_vs(tree, '.', 1))
+                std::cout << row << std::endl;
+
             return seconds;
         }
     }
