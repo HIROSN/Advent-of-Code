@@ -1,8 +1,10 @@
-// #include <debug_print.h>
+#include <debug_print.h>
+#undef DTIMER_ON
 #include <main.h>
 #include <skip.h>
 
 #include <algorithm>
+#include <list>
 #include <map>
 #include <queue>
 #include <sstream>
@@ -17,6 +19,27 @@ std::optional<uint64_t> Answer(std::ifstream &file)
         int py;
         int vx;
         int vy;
+    };
+
+    struct Histograms
+    {
+        using Histogram = std::map<int, int>;
+
+        Histogram x;
+        Histogram y;
+
+        int top(int rank, const Histogram &histogram)
+        {
+            std::priority_queue<int> peak;
+
+            for (auto it : histogram)
+                peak.push(it.second);
+
+            for (int i = 0; i < rank - 1; i++)
+                peak.pop();
+
+            return peak.top();
+        }
     };
 
     std::vector<Robot> initial_state;
@@ -62,31 +85,25 @@ std::optional<uint64_t> Answer(std::ifstream &file)
         return robots;
     };
 
-    auto histogram_peak = [](const std::vector<Robot> &robots)
-        -> std::pair<int, int>
+    auto get_histograms = [](const std::vector<Robot> &robots) -> Histograms
     {
-        std::map<int, int> histogram_x, histogram_y;
-        std::priority_queue<int> peak_x, peak_y;
+        Histograms histograms;
 
         for (const auto &robot : robots)
         {
-            histogram_x[robot.px]++;
-            histogram_y[robot.py]++;
+            histograms.x[robot.px]++;
+            histograms.y[robot.py]++;
         }
 
-        for (auto it : histogram_x)
-            peak_x.push(it.second);
-        for (auto it : histogram_y)
-            peak_y.push(it.second);
-
-        return {peak_x.top(), peak_y.top()};
+        return histograms;
     };
 
     while (++seconds < size_x * size_y)
     {
         auto robots = elapsed(seconds, initial_state);
-        auto peak = histogram_peak(robots);
-        int peak_size = peak.first * peak.second;
+        auto histograms = get_histograms(robots);
+        int peak_size = histograms.top(1, histograms.x) *
+                        histograms.top(1, histograms.y);
         seconds_peak_map[seconds] = peak_size;
 
         if (peak_size > highest_peak_size)
@@ -97,16 +114,48 @@ std::optional<uint64_t> Answer(std::ifstream &file)
     {
         if (seconds_peak_map[seconds] == highest_peak_size)
         {
-#ifdef DPRINT_ON
             auto robots = elapsed(seconds, initial_state);
-            std::map<std::pair<int, int>, char> mpc;
+            auto histograms = get_histograms(robots);
+
+            using Peak = std::pair<int, int>;
+            Peak peak_x{histograms.top(1, histograms.x),
+                        histograms.top(2, histograms.x)};
+            Peak peak_y{histograms.top(1, histograms.y),
+                        histograms.top(2, histograms.y)};
+
+            std::list<int> frame_x, frame_y;
+            std::map<std::pair<int, int>, char> tree;
+
+            for (auto it : histograms.x)
+                if (it.second == peak_x.first || it.second == peak_x.second)
+                    frame_x.push_back(it.first);
+            CHECK(frame_x.size() == 2);
+
+            for (auto it : histograms.y)
+                if (it.second == peak_y.first || it.second == peak_y.second)
+                    frame_y.push_back(it.first);
+            CHECK(frame_y.size() == 2);
+
+            int start_x = *std::min_element(frame_x.begin(), frame_x.end());
+            int end_x = *std::max_element(frame_x.begin(), frame_x.end());
+            int start_y = *std::min_element(frame_y.begin(), frame_y.end());
+            int end_y = *std::max_element(frame_y.begin(), frame_y.end());
+
             for (const auto &robot : robots)
-                if (mpc[{robot.px, robot.py}])
-                    mpc[{robot.px, robot.py}]++;
-                else
-                    mpc[{robot.px, robot.py}] = '1';
-            DPRINT3(mpc, '.', 1);
-#endif
+            {
+                const int &x = robot.px;
+                const int &y = robot.py;
+
+                if (x > start_x && x < end_x && y > start_y && y < end_y)
+                {
+                    if (tree[{x, y}])
+                        tree[{x, y}]++;
+                    else
+                        tree[{x, y}] = '1';
+                }
+            }
+
+            DPRINT3(tree, '.', 1);
             return seconds;
         }
     }
