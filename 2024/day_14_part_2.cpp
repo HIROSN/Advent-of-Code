@@ -24,28 +24,27 @@ std::optional<uint64_t> Answer(std::ifstream &file)
     struct Histograms
     {
         using Histogram = std::map<int, int>;
+        using TopTwo = std::pair<int, int>;
 
         Histogram x;
         Histogram y;
 
-        int top(int rank, const Histogram &histogram)
+        TopTwo top2(const Histogram &histogram)
         {
             std::priority_queue<int> peak;
 
             for (auto it : histogram)
                 peak.push(it.second);
 
-            for (int i = 0; i < rank - 1; i++)
-                peak.pop();
-
-            return peak.top();
+            int top = peak.top();
+            peak.pop();
+            return {top, peak.top()};
         }
     };
 
-    std::vector<Robot> initial_state;
-    int size_x = 0, size_y = 0, seconds = 0;
-    std::map<int, int> seconds_peak_map;
-    int highest_peak_size = 0;
+    using Robots = std::vector<Robot>;
+    Robots initial_state;
+    int size_x = 0, size_y = 0, fewest_seconds = 0;
     std::string line;
 
     while (std::getline(file, line))
@@ -68,8 +67,7 @@ std::optional<uint64_t> Answer(std::ifstream &file)
         initial_state.push_back(robot);
     }
 
-    auto elapsed = [&](int seconds,
-                       std::vector<Robot> robots) -> std::vector<Robot>
+    auto elapsed = [&](int seconds, Robots robots) -> Robots
     {
         for (auto &robot : robots)
         {
@@ -85,7 +83,7 @@ std::optional<uint64_t> Answer(std::ifstream &file)
         return robots;
     };
 
-    auto get_histograms = [](const std::vector<Robot> &robots) -> Histograms
+    auto get_histograms = [](const Robots &robots) -> Histograms
     {
         Histograms histograms;
 
@@ -98,68 +96,62 @@ std::optional<uint64_t> Answer(std::ifstream &file)
         return histograms;
     };
 
-    while (++seconds < size_x * size_y)
+    while (++fewest_seconds < size_x * size_y)
     {
-        auto robots = elapsed(seconds, initial_state);
+        auto robots = elapsed(fewest_seconds, initial_state);
         auto histograms = get_histograms(robots);
-        int peak_size = histograms.top(1, histograms.x) *
-                        histograms.top(1, histograms.y);
-        seconds_peak_map[seconds] = peak_size;
+        auto top2_x = histograms.top2(histograms.x);
+        auto top2_y = histograms.top2(histograms.y);
 
-        if (peak_size > highest_peak_size)
-            highest_peak_size = peak_size;
-    }
+        std::list<int> frame_x, frame_y;
+        std::map<std::pair<int, int>, char> tree;
+        bool has_frame = true;
 
-    for (int seconds = 1; seconds < size_x * size_y; seconds++)
-    {
-        if (seconds_peak_map[seconds] == highest_peak_size)
+        for (auto it : histograms.x)
+            if (it.second == top2_x.first || it.second == top2_x.second)
+                frame_x.push_back(it.first);
+
+        for (auto it : histograms.y)
+            if (it.second == top2_y.first || it.second == top2_y.second)
+                frame_y.push_back(it.first);
+
+        if (frame_x.size() != 2 || frame_y.size() != 2)
+            continue;
+
+        int start_x = *std::min_element(frame_x.begin(), frame_x.end());
+        int end_x = *std::max_element(frame_x.begin(), frame_x.end());
+        int start_y = *std::min_element(frame_y.begin(), frame_y.end());
+        int end_y = *std::max_element(frame_y.begin(), frame_y.end());
+
+        for (const auto &robot : robots)
         {
-            auto robots = elapsed(seconds, initial_state);
-            auto histograms = get_histograms(robots);
+            const int &x = robot.px;
+            const int &y = robot.py;
 
-            using Peak = std::pair<int, int>;
-            Peak peak_x{histograms.top(1, histograms.x),
-                        histograms.top(2, histograms.x)};
-            Peak peak_y{histograms.top(1, histograms.y),
-                        histograms.top(2, histograms.y)};
-
-            std::list<int> frame_x, frame_y;
-            std::map<std::pair<int, int>, char> tree;
-
-            for (auto it : histograms.x)
-                if (it.second == peak_x.first || it.second == peak_x.second)
-                    frame_x.push_back(it.first);
-            CHECK(frame_x.size() == 2);
-
-            for (auto it : histograms.y)
-                if (it.second == peak_y.first || it.second == peak_y.second)
-                    frame_y.push_back(it.first);
-            CHECK(frame_y.size() == 2);
-
-            int start_x = *std::min_element(frame_x.begin(), frame_x.end());
-            int end_x = *std::max_element(frame_x.begin(), frame_x.end());
-            int start_y = *std::min_element(frame_y.begin(), frame_y.end());
-            int end_y = *std::max_element(frame_y.begin(), frame_y.end());
-
-            for (const auto &robot : robots)
+            if (x >= start_x && x <= end_x && y >= start_y && y <= end_y)
             {
-                const int &x = robot.px;
-                const int &y = robot.py;
-
-                if (x >= start_x && x <= end_x && y >= start_y && y <= end_y)
-                {
-                    if (tree[{x, y}])
-                        tree[{x, y}]++;
-                    else
-                        tree[{x, y}] = '1';
-                }
+                if (tree[{x, y}])
+                    tree[{x, y}]++;
+                else
+                    tree[{x, y}] = '1';
             }
-
-            for (auto row : mpc_to_vs(tree, '.', 1))
-                std::cout << row << std::endl;
-
-            return seconds;
         }
+
+        for (int x = start_x; has_frame && x <= end_x; x++)
+            has_frame = tree.find({x, start_y}) != tree.end() &&
+                        tree.find({x, end_y}) != tree.end();
+
+        for (int y = start_y; has_frame && y <= end_y; y++)
+            has_frame = tree.find({start_x, y}) != tree.end() &&
+                        tree.find({end_x, y}) != tree.end();
+
+        if (!has_frame)
+            continue;
+
+        for (auto row : mpc_to_vs(tree, '.', 1))
+            std::cout << row << std::endl;
+
+        return fewest_seconds;
     }
 
     return {};
