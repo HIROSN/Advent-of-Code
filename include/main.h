@@ -72,4 +72,6 @@ int main(int argc, char *argv[])
 #define DPRINT3(x, y, z)
 #define DPRINTX(any)
 #define DPRINTX_ENDL(any)
+#define DPRINTX2(x, y)
+#define DPRINTX3(x, y, z)
 #endif

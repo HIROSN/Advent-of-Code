@@ -199,4 +199,8 @@ void DPRINT3(int x, int y, int z)
 
 #define DPRINTX_ENDL(any) std::cout << any << std::endl;
 
+#define DPRINTX2(x, y) std::cout << "(" << x << "," << y << ")"
+
+#define DPRINTX3(x, y, z) std::cout << x << "," << y << "," << z
+
 #endif // DPRINT_ON
