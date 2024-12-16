@@ -219,6 +219,7 @@
 // 75
 */
 
+#include <climits>
 #include <iostream>
 #include <map>
 #include <utility>
@@ -226,6 +227,10 @@
 
 #ifndef Number
 #define Number int
+#endif
+
+#ifndef NUMBER_MAX
+#define NUMBER_MAX INT_MAX
 #endif
 
 namespace aoc
@@ -237,6 +242,11 @@ namespace aoc
 
         Point() = default;
         Point(Number px, Number py) : x(px), y(py) {}
+
+        std::pair<Number, Number> as_pair() const
+        {
+            return {x, y};
+        }
 
         enum Priority
         {
