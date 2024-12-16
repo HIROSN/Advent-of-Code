@@ -28,8 +28,8 @@ std::optional<uint64_t> Answer(std::ifstream &file)
         map.push_back(line);
     }
 
-    const int size_x = line.size();
-    const int size_y = map.size();
+    const Number size_x = line.size();
+    const Number size_y = map.size();
 
     std::vector<std::vector<Number>> lowest_score(
         size_y, std::vector<Number>(size_x, NUMBER_MAX));
