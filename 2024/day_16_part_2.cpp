@@ -44,6 +44,16 @@ std::optional<uint64_t> Answer(std::ifstream &file)
             direction.heading = aoc::Offset::Right;
         }
 
+        void visit(const aoc::Offset &offset) override
+        {
+            score++;
+
+            if (direction.heading != offset)
+                score += 1000;
+
+            aoc::Traveler::visit(offset);
+        }
+
         std::vector<aoc::Offset> get_offsets(
             std::vector<std::string> &map)
         {
@@ -101,10 +111,7 @@ std::optional<uint64_t> Answer(std::ifstream &file)
             for (const auto &offset : reindeer.get_offsets(map))
             {
                 auto next = reindeer;
-                if (offset != reindeer.direction.heading)
-                    next.score += 1000;
                 next.visit(offset);
-                next.score++;
                 reindeer_queue.push({next.score, next});
             }
         }
@@ -135,11 +142,6 @@ std::optional<uint64_t> Answer(std::ifstream &file)
             continue;
 
         const auto &next_offset = (it + 1)->first;
-        reindeer.score++;
-
-        if (reindeer.direction.heading != offset)
-            reindeer.score += 1000;
-
         reindeer.visit(offset);
 
         for (const auto &next : reindeer.get_offsets(map))
@@ -148,11 +150,6 @@ std::optional<uint64_t> Answer(std::ifstream &file)
             {
                 DPRINTX(point << next.ch);
                 auto reindeer_copy = reindeer;
-                reindeer_copy.score++;
-
-                if (reindeer_copy.direction.heading != next)
-                    reindeer_copy.score += 1000;
-
                 reindeer_copy.visit(next);
                 Reindeer reindeer_at_end = get_score(reindeer_copy);
                 bool lowest =
