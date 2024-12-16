@@ -146,19 +146,18 @@ std::optional<uint64_t> Answer(std::ifstream &file)
 
         for (const auto &next : reindeer.get_offsets(map))
         {
-            if (next != next_offset)
-            {
-                DPRINTX(point << next.ch);
-                auto reindeer_copy = reindeer;
-                reindeer_copy.visit(next);
-                Reindeer reindeer_at_end = get_score(reindeer_copy);
-                bool lowest =
-                    reindeer_at_end.score == reindeer_lowest_score.score;
-                DPRINTX_ENDL(reindeer_at_end.score << (lowest ? "*" : ""));
+            if (next == next_offset)
+                continue;
 
-                if (lowest)
-                    add_to_best_spot(reindeer_at_end);
-            }
+            auto reindeer_copy = reindeer;
+            reindeer_copy.visit(next);
+            Reindeer reindeer_at_end = get_score(reindeer_copy);
+
+            if (reindeer_at_end.score != reindeer_lowest_score.score)
+                continue;
+
+            DPRINTX_ENDL(point << next.ch);
+            add_to_best_spot(reindeer_at_end);
         }
     }
 
