@@ -70,7 +70,7 @@ std::optional<uint64_t> Answer(std::ifstream &file)
 
         std::vector<std::string> debug_print(std::vector<std::string> map)
         {
-            for (auto it : get_path('.'))
+            for (auto it : get_path('.', 0, true))
                 if (map[it.first.second][it.first.first] == '.')
                     map[it.first.second][it.first.first] = it.second;
             return map;
