@@ -518,16 +518,24 @@ namespace aoc
         }
 
         virtual std::map<std::pair<int, int>, char> get_path(
-            char ch_space, char ch_path = 0) const
+            char ch_space = 0,
+            char ch_path = 0,
+            bool do_not_add_extra_spaces = false) const
         {
-            std::map<std::pair<int, int>, char> path{
-                {{0, 0}, ch_space},
-                {{start.x + size_x - 1, start.y + size_y - 1},
-                 ch_space}};
+            std::map<std::pair<int, int>, char> path;
+            ch_space |= ' ';
+
+            if (!do_not_add_extra_spaces)
+            {
+                path[{0, 0}] = ch_space;
+                path[{size_x - 1, size_y - 1}] = ch_space;
+            }
+
             for (auto it = visited.rbegin(); it != visited.rend(); it++)
                 path[{it->second.x, it->second.y}] =
                     ch_path ? ch_path : it->first.ch ? it->first.ch
                                                      : ch_space;
+
             return path;
         }
 
