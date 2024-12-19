@@ -49,10 +49,16 @@ int64_t pow2_on_combo_operand()
     switch (operand)
     {
     case 4:
+        if (a < 8)
+            break;
         return std::pow(2, a);
     case 5:
+        if (a < 8)
+            break;
         return std::pow(2, b);
     case 6:
+        if (a < 8)
+            break;
         return std::pow(2, c);
     default:
         break;
