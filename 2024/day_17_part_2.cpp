@@ -1,4 +1,4 @@
-// #include <debug_print.h>
+#include <debug_print.h>
 #define DTIMER_ON
 // #define PART_1
 #include <main.h>
@@ -11,8 +11,169 @@
 #include <utility>
 #include <vector>
 
+constexpr unsigned int program_size = 16;
+constexpr unsigned int program[] = {2, 4, 1, 5, 7, 5, 1, 6, 4, 1, 5, 5, 0, 3, 3, 0};
+int64_t pow2[8] = {};
+
+unsigned int ip = 0;
+int64_t a = 0, b = 0, c = 0;
+unsigned int output[program_size] = {};
+unsigned int output_size = 0;
+
+int64_t combo_operand()
+{
+    auto operand = program[ip];
+
+    switch (operand)
+    {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+        break;
+    case 4:
+        return a;
+    case 5:
+        return b;
+    case 6:
+        return c;
+    }
+
+    return operand;
+}
+
+int64_t pow2_on_combo_operand()
+{
+    auto operand = program[ip];
+
+    switch (operand)
+    {
+    case 4:
+        return std::pow(2, a);
+    case 5:
+        return std::pow(2, b);
+    case 6:
+        return std::pow(2, c);
+    default:
+        break;
+    }
+
+    return pow2[operand];
+}
+
+int run(int64_t register_a)
+{
+    ip = 0;
+    a = register_a;
+    b = 0;
+    c = 0;
+    output_size = 0;
+    int match = 0;
+
+    while (ip < program_size)
+    {
+        auto code = program[ip];
+
+        if (++ip >= program_size)
+            break;
+
+        switch (code)
+        {
+        case 0:
+            a = a / pow2_on_combo_operand();
+            break;
+        case 1:
+            b = b ^ program[ip];
+            break;
+        case 2:
+            b = combo_operand() % 8;
+            break;
+        case 3:
+            if (a != 0)
+            {
+                ip = program[ip];
+                continue;
+            }
+            break;
+        case 4:
+            b = b ^ c;
+            break;
+        case 5:
+            if (output_size < program_size)
+            {
+                output[output_size] = combo_operand() % 8;
+                if (output[output_size] == program[output_size])
+                {
+                    match++;
+                }
+                output_size++;
+            }
+            break;
+        case 6:
+            b = a / pow2_on_combo_operand();
+            break;
+        case 7:
+            c = a / pow2_on_combo_operand();
+            break;
+        }
+
+        ip++;
+    }
+
+#ifdef DPRINT_ON
+    bool print = match >= 15;
+#ifdef PART_1
+    print = true;
+#endif
+    if (print)
+    {
+        std::cout << std::dec << register_a << ": "
+                  << std::oct << register_a;
+
+        for (int i = 0; i < output_size; i++)
+        {
+            std::cout << (i ? ',' : ' ');
+            std::cout << output[i];
+        }
+
+        std::cout << " match " << std::dec << match
+                  << std::endl;
+    }
+#endif
+    return match;
+}
+
 std::optional<uint64_t> Answer(std::ifstream &file)
 {
+    const int64_t start = 108753730031361;
+    const int64_t end = 03057777777777777;
+    const int64_t oct_13 = 010000000000000;
+    const int step = 8;
+
+    for (int i = 0; i < 8; i++)
+        pow2[i] = std::pow(2, i);
+
+#ifdef PART_1
+    run(60589763);
+    return {};
+#endif
+
+    for (auto register_a = start - step;
+         register_a > end - oct_13 + 1;
+         register_a -= step)
+    {
+        if (run(register_a) == program_size)
+            return register_a;
+    }
+
+    for (auto register_a = start + step;
+         register_a <= end;
+         register_a += step)
+    {
+        if (run(register_a) == program_size)
+            return register_a;
+    }
+
 #if 0
     const char IP = 'I';
     constexpr int MAX_REGISTERS = 'Z' + 1;
@@ -660,152 +821,6 @@ std::optional<uint64_t> Answer(std::ifstream &file)
         }
     }
 #endif
-    constexpr unsigned int program_size = 16;
-
-    auto run = [&](int64_t register_a) -> int
-    {
-        const unsigned int program[] = {2, 4, 1, 5, 7, 5, 1, 6, 4, 1, 5, 5, 0, 3, 3, 0};
-        unsigned int ip = 0;
-        int64_t a = register_a, b = 0, c = 0;
-        unsigned int output[program_size] = {};
-        unsigned int output_size = 0;
-        int64_t pow2[8] = {};
-
-        for (int i = 0; i < 8; i++)
-            pow2[i] = std::pow(2, i);
-
-        auto get_operand = [&]() -> int64_t
-        {
-            if (ip < program_size)
-                return program[ip++];
-            return 0;
-        };
-
-        auto get_combo_operand = [&]() -> int64_t
-        {
-            auto operand = get_operand();
-
-            switch (operand)
-            {
-            case 0:
-            case 1:
-            case 2:
-            case 3:
-                break;
-            case 4:
-                return a;
-            case 5:
-                return b;
-            case 6:
-                return c;
-            }
-
-            return operand;
-        };
-
-        auto pow2_on_combo_operand = [&]() -> int64_t
-        {
-            auto operand = get_operand();
-
-            switch (operand)
-            {
-            case 4:
-                return std::pow(2, a);
-            case 5:
-                return std::pow(2, b);
-            case 6:
-                return std::pow(2, c);
-            default:
-                break;
-            }
-
-            return pow2[operand];
-        };
-
-        while (ip < program_size)
-        {
-            switch (program[ip++])
-            {
-            case 0:
-                a = a / pow2_on_combo_operand();
-                break;
-            case 1:
-                b = b ^ get_operand();
-                break;
-            case 2:
-                b = get_combo_operand() % 8;
-                break;
-            case 3:
-                if (a != 0)
-                    ip = get_operand();
-                else
-                    get_operand();
-                break;
-            case 4:
-                b = b ^ c;
-                get_operand();
-                break;
-            case 5:
-                if (output_size < program_size)
-                    output[output_size++] = get_combo_operand() % 8;
-                else
-                    get_combo_operand();
-                break;
-            case 6:
-                b = a / pow2_on_combo_operand();
-                break;
-            case 7:
-                c = a / pow2_on_combo_operand();
-                break;
-            }
-        }
-
-#ifdef DPRINT_ON
-        std::cout << register_a;
-
-        for (int i = 0; i < output_size; i++)
-        {
-            std::cout << (i ? ',' : ' ');
-            std::cout << output[i];
-        }
-#endif
-        int match = 0;
-
-        for (int i = 0; i < output_size; i++)
-            if (output[i] == program[i])
-                match++;
-
-#ifdef DPRINT_ON
-        std::cout << " match " << match << std::endl;
-#endif
-        return match;
-    };
-
-#ifdef PART_1
-    run(60589763);
-    return {};
-#endif
-
-    const int64_t start = 108753730031361;
-    const int64_t end = 03057777777777777;
-    const int64_t oct_13 = 010000000000000;
-    const int step = 8;
-
-    for (auto register_a = start - step;
-         register_a > end - oct_13 + 1;
-         register_a -= step)
-    {
-        if (run(register_a) == program_size)
-            return register_a;
-    }
-
-    for (auto register_a = start + step;
-         register_a <= end;
-         register_a += step)
-    {
-        if (run(register_a) == program_size)
-            return register_a;
-    }
 
     return {};
 }
