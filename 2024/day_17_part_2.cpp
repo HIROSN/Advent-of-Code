@@ -669,6 +669,10 @@ std::optional<uint64_t> Answer(std::ifstream &file)
         int64_t a = register_a, b = 0, c = 0;
         unsigned int output[program_size] = {};
         unsigned int output_size = 0;
+        int64_t pow2[8] = {};
+
+        for (int i = 0; i < 8; i++)
+            pow2[i] = std::pow(2, i);
 
         auto get_operand = [&]() -> int64_t
         {
@@ -699,12 +703,31 @@ std::optional<uint64_t> Answer(std::ifstream &file)
             return operand;
         };
 
+        auto pow2_on_combo_operand = [&]() -> int64_t
+        {
+            auto operand = get_operand();
+
+            switch (operand)
+            {
+            case 4:
+                return std::pow(2, a);
+            case 5:
+                return std::pow(2, b);
+            case 6:
+                return std::pow(2, c);
+            default:
+                break;
+            }
+
+            return pow2[operand];
+        };
+
         while (ip < program_size)
         {
             switch (program[ip++])
             {
             case 0:
-                a = a / std::pow(2, get_combo_operand());
+                a = a / pow2_on_combo_operand();
                 break;
             case 1:
                 b = b ^ get_operand();
@@ -729,10 +752,10 @@ std::optional<uint64_t> Answer(std::ifstream &file)
                     get_combo_operand();
                 break;
             case 6:
-                b = a / std::pow(2, get_combo_operand());
+                b = a / pow2_on_combo_operand();
                 break;
             case 7:
-                c = a / std::pow(2, get_combo_operand());
+                c = a / pow2_on_combo_operand();
                 break;
             }
         }
