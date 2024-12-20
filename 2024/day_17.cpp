@@ -1,4 +1,23 @@
 // #include <debug_print.h>
+// #define NUMBER_OF_FIRST_OUTPUT_TO_DEBUG 5
+#ifdef DPRINT_ON
+#ifdef NUMBER_OF_FIRST_OUTPUT_TO_DEBUG
+#undef DPRINTX
+#define DPRINTX(any)                                     \
+    if (output.size() < NUMBER_OF_FIRST_OUTPUT_TO_DEBUG) \
+        std::cout << any;
+#undef DPRINTX_ENDL
+#define DPRINTX_ENDL(any)                                \
+    if (output.size() < NUMBER_OF_FIRST_OUTPUT_TO_DEBUG) \
+        std::cout << any << std::endl;
+#ifdef DPRINT_ENDL
+#undef DPRINT_ENDL
+#endif
+#define DPRINT_ENDL()                                    \
+    if (output.size() < NUMBER_OF_FIRST_OUTPUT_TO_DEBUG) \
+        std::cout << std::endl;
+#endif
+#endif
 #include <main.h>
 #include <skip.h>
 
@@ -15,6 +34,7 @@ std::optional<uint64_t> Answer(std::ifstream &file)
     std::map<std::string, int64_t> registers{{IP, 0}};
     std::vector<int> program;
     std::vector<int> output;
+    int last_output = 0;
     std::string line;
 
     while (std::getline(file, line))
@@ -123,7 +143,7 @@ std::optional<uint64_t> Answer(std::ifstream &file)
         auto denominator = std::pow(2, operand);
         CHECK(denominator != 0);
         registers["A"] = numerator / denominator;
-        DPRINTX(numerator << "/" << denominator << "=" << registers["A"]);
+        DPRINTX(numerator << " / " << denominator << " = " << registers["A"]);
     };
 
     InstructionFunction bxl_function = [&](int64_t operand) -> void
@@ -131,20 +151,20 @@ std::optional<uint64_t> Answer(std::ifstream &file)
         auto left = registers["B"];
         auto right = operand;
         registers["B"] = left ^ right;
-        DPRINTX(left << "^" << right << "=" << registers["B"]);
+        DPRINTX(left << " ^ " << right << " = " << registers["B"]);
     };
 
     InstructionFunction bst_function = [&](int64_t operand) -> void
     {
         registers["B"] = operand % 8;
-        DPRINTX(operand << "%8=" << registers["B"]);
+        DPRINTX(operand << " % 8 = " << registers["B"]);
     };
 
     InstructionFunction jnz_function = [&](int64_t operand) -> void
     {
         if (registers["A"] != 0)
             registers[IP] = operand;
-        DPRINTX("IP=" << registers[IP]);
+        DPRINTX("IP = " << registers[IP]);
     };
 
     InstructionFunction bxc_function = [&](int64_t operand) -> void
@@ -152,14 +172,13 @@ std::optional<uint64_t> Answer(std::ifstream &file)
         auto left = registers["B"];
         auto right = registers["C"];
         registers["B"] = left ^ right;
-        DPRINTX(left << "^" << right << "=" << registers["B"]);
+        DPRINTX(left << " ^ " << right << " = " << registers["B"]);
     };
 
     InstructionFunction out_function = [&](int64_t operand) -> void
     {
-        auto value = operand % 8;
-        output.push_back(value);
-        DPRINTX(operand << "%8=" << value);
+        last_output = operand % 8;
+        DPRINTX(operand << " % 8 = " << last_output);
     };
 
     InstructionFunction bdv_function = [&](int64_t operand) -> void
@@ -168,7 +187,7 @@ std::optional<uint64_t> Answer(std::ifstream &file)
         auto denominator = std::pow(2, operand);
         CHECK(denominator != 0);
         registers["B"] = numerator / denominator;
-        DPRINTX(numerator << "/" << denominator << "=" << registers["B"]);
+        DPRINTX(numerator << " / " << denominator << " = " << registers["B"]);
     };
 
     InstructionFunction cdv_function = [&](int64_t operand) -> void
@@ -177,7 +196,7 @@ std::optional<uint64_t> Answer(std::ifstream &file)
         auto denominator = std::pow(2, operand);
         CHECK(denominator != 0);
         registers["C"] = numerator / denominator;
-        DPRINTX(numerator << "/" << denominator << "=" << registers["C"]);
+        DPRINTX(numerator << " / " << denominator << " = " << registers["C"]);
     };
 
     std::map<Instruction, std::pair<InstructionFunction, OperandFunction>>
@@ -210,12 +229,25 @@ std::optional<uint64_t> Answer(std::ifstream &file)
 
         if (registers[IP] < program.size())
         {
-            DPRINTX(instruction_name[opcode] << ": ");
             auto operand = functions.second();
+
+            DPRINT_ENDL();
+            DPRINTX(instruction_name[opcode] << ": " << operand << ": ");
+
             functions.first(operand);
+
             DPRINT_ENDL();
             DPRINTX_ENDL(print_registers());
-            DPRINTX_ENDL("Output: " << print_values(output));
+
+            if (opcode == out)
+            {
+                auto output_copy = output;
+                output_copy.push_back(last_output);
+                DPRINTX_ENDL("output: " << print_values(output_copy));
+                output = output_copy;
+            }
+            else if (output.size())
+                DPRINTX_ENDL("output: " << print_values(output));
         }
 
         for (auto it : registers)
@@ -223,6 +255,9 @@ std::optional<uint64_t> Answer(std::ifstream &file)
         for (auto it : output)
             CHECK(it >= 0);
     }
+#ifdef DPRINT_ON
+    std::cout << std::endl;
+#endif
 
     std::cout << print_values(output) << std::endl;
     return {};
