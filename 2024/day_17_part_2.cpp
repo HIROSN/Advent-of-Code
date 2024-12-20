@@ -133,13 +133,16 @@ int run(int64_t register_a)
 #endif
     if (print)
     {
-        std::cout << std::dec << register_a << ": "
+        std::cout << std::dec << register_a << ": 0"
                   << std::oct << register_a;
 
         for (int i = 0; i < output_size; i++)
         {
             std::cout << (i ? ',' : ' ');
             std::cout << output[i];
+
+            if (output[i] != program[i])
+                std::cout << '*';
         }
 
         std::cout << " match " << std::dec << match
@@ -151,11 +154,6 @@ int run(int64_t register_a)
 
 std::optional<uint64_t> Answer(std::ifstream &file)
 {
-    const int64_t start = 108753730031361;
-    const int64_t end = 03057777777777777;
-    const int64_t oct_13 = 010000000000000;
-    const int step = 8;
-
     for (int i = 0; i < 8; i++)
         pow2[i] = std::pow(2, i);
 
@@ -163,22 +161,6 @@ std::optional<uint64_t> Answer(std::ifstream &file)
     run(60589763);
     return {};
 #endif
-
-    for (auto register_a = start - step;
-         register_a > end - oct_13 + 1;
-         register_a -= step)
-    {
-        if (run(register_a) == program_size)
-            return register_a;
-    }
-
-    for (auto register_a = start + step;
-         register_a <= end;
-         register_a += step)
-    {
-        if (run(register_a) == program_size)
-            return register_a;
-    }
 
 #if 0
     const char IP = 'I';
@@ -827,6 +809,47 @@ std::optional<uint64_t> Answer(std::ifstream &file)
         }
     }
 #endif
+
+    /*
+    15 matches:
+    107413700235009: 03033046334447401 2,4,1,5,5*,5,1,6,4,1,5,5,0,3,3,0 match 15
+    108753730031361: 03056446334447401 2,4,1,5,5*,5,1,6,4,1,5,5,0,3,3,0 match 15
+    112739459682049: 03150446334447401 2,4,1,5,5*,5,1,6,4,1,5,5,0,3,3,0 match 15
+    112756639551233: 03150646334447401 2,4,1,5,5*,5,1,6,4,1,5,5,0,3,3,0 match 15
+    113151776542465: 03156446334447401 2,4,1,5,5*,5,1,6,4,1,5,5,0,3,3,0 match 15
+    130331645726465: 03550446334447401 2,4,1,5,5*,5,1,6,4,1,5,5,0,3,3,0 match 15
+    130348825595649: 03550646334447401 2,4,1,5,5*,5,1,6,4,1,5,5,0,3,3,0 match 15
+    130743962586881: 03556446334447401 2,4,1,5,5*,5,1,6,4,1,5,5,0,3,3,0 match 15
+    139540055609089: 03756446334447401 2,4,1,5,5*,5,1,6,4,1,5,5,0,3,3,0 match 15
+    */
+
+    const int64_t low = 01000000000000000;
+    int64_t start = 03056446334447401;
+    const int64_t end = 07777777777777777;
+    const int64_t step = 0100000000000;
+
+    std::priority_queue<int64_t> queue;
+    std::stack<int64_t> stack;
+
+    for (auto ra = start; ra >= low; ra -= step)
+        queue.push(ra);
+
+    for (auto ra = start + step; ra <= end; ra += step)
+        queue.push(ra);
+
+    while (!queue.empty())
+    {
+        stack.push(queue.top());
+        queue.pop();
+    }
+
+    while (!stack.empty())
+    {
+        if (run(stack.top()) == program_size)
+            return stack.top();
+
+        stack.pop();
+    }
 
     return {};
 }
