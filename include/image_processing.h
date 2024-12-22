@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cmath>
 #include <map>
 #include <string>
 #include <utility>
@@ -149,5 +150,11 @@ namespace aoc
                     numbered[y][x] = static_cast<Number>(image[y][x]);
 
         return labeling(numbered, renumber);
+    }
+
+    Number distance(const std::pair<Number, Number> &a,
+                    const std::pair<Number, Number> &b)
+    {
+        return std::abs(a.first - b.first) + std::abs(a.second - b.second);
     }
 }
