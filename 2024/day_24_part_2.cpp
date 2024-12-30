@@ -16,13 +16,6 @@
 
 // #define PART_1
 
-#define ManualSwap(ms, n1, n2)                \
-    Swapped ms(connection_by_output(n1),      \
-               connection_by_output(n2),      \
-               &all_connections);             \
-    names_queue.push(ms.gates.first->output); \
-    names_queue.push(ms.gates.second->output)
-
 using Value = std::optional<short>;
 
 struct Wire
@@ -257,7 +250,9 @@ std::optional<uint64_t> Answer(std::ifstream &file)
     {
         reset();
 
-        while (gates_finished() < all_gates.size())
+        for (int finished_size = 0;
+             finished_size < all_gates.size();
+             finished_size = gates_finished())
         {
             clock++;
 
@@ -276,6 +271,9 @@ std::optional<uint64_t> Answer(std::ifstream &file)
 
                 output.value = connection.gate->output;
             }
+
+            if (gates_finished() == finished_size)
+                return -1;
         }
 
         if (return_error)
@@ -285,7 +283,7 @@ std::optional<uint64_t> Answer(std::ifstream &file)
             return a ^ z;
         }
 
-        return number('x') + number('y');
+        return number('z');
     };
 
 #ifdef PART_1
@@ -299,8 +297,6 @@ std::optional<uint64_t> Answer(std::ifstream &file)
     {
         SwapPair gates = {};
         std::vector<Connection> *all_connections;
-
-        Swapped() = default;
 
         Swapped(Connection *c1, Connection *c2,
                 std::vector<Connection> *ac)
@@ -324,25 +320,7 @@ std::optional<uint64_t> Answer(std::ifstream &file)
         {
             if (gates.first && gates.second)
             {
-                auto first = gates.first->output;
-                auto second = gates.second->output;
-                // rename_output(first, "???");
-                // rename_output(second, first);
-                // rename_output("???", second);
                 std::swap(gates.first->output, gates.second->output);
-            }
-        }
-
-        void rename_output(const std::string &from, const std::string &to)
-        {
-            for (auto &connection : *all_connections)
-            {
-                if (connection.left == from)
-                    connection.left = to;
-                if (connection.right == from)
-                    connection.right = to;
-                if (connection.output == from)
-                    connection.output = to;
             }
         }
     };
@@ -422,14 +400,6 @@ std::optional<uint64_t> Answer(std::ifstream &file)
             if (bits.test(i))
                 return i;
         return 0;
-    };
-
-    auto combination = [](int64_t s, int n) -> int64_t
-    {
-        int c = s;
-        for (int i = 1; i < n; i++)
-            c *= --s;
-        return c;
     };
 
     auto result_bits = addition_system();
@@ -585,46 +555,25 @@ std::optional<uint64_t> Answer(std::ifstream &file)
         return ss.str();
     };
 
-    auto print_names = [](const std::list<std::string> &names)
-        -> std::string
-    {
-        std::stringstream ss;
-        std::priority_queue<std::string,
-                            std::vector<std::string>,
-                            std::greater<std::string>>
-            queue;
-
-        for (const auto &n : names)
-            queue.push(n);
-
-        while (!queue.empty())
-        {
-            ss << queue.top();
-            queue.pop();
-            if (!queue.empty())
-                ss << ",";
-        }
-
-        return ss.str();
-    };
-
     std::bitset<64> problem_bits;
     std::list<std::string> problem_xor_names;
     std::list<std::string> problem_and_names;
     std::list<std::string> problem_or_names;
     std::map<std::string, bool> problem_output_names;
+    std::map<int, std::vector<Connection *>> success_path;
+    std::map<int, std::vector<Connection *>> problems;
+    std::map<int, std::vector<Connection *>> success_path_back;
+    std::map<int, std::vector<Connection *>> problems_back;
 
     auto find_problems = [&](int bit_start, int bit_end,
                              bool verbose = false,
                              bool walk_back = false,
-                             bool problem_only = false) -> int
+                             bool problem_only = false) -> std::bitset<64>
     {
-        int total_success_outputs = 0;
-
-        std::map<int, std::vector<Connection *>> success_path;
-        std::map<int, std::vector<Connection *>> problems;
-        std::map<int, std::vector<Connection *>> success_path_back;
-        std::map<int, std::vector<Connection *>> problems_back;
+        success_path.clear();
+        problems.clear();
+        success_path_back.clear();
+        problems_back.clear();
 
         success_outputs_per_bit.clear();
         problem_outputs_per_bit.clear();
@@ -665,19 +614,13 @@ std::optional<uint64_t> Answer(std::ifstream &file)
 
             if (!walk_back_from_z(
                     connection_by_output(z), px, 0, 3, {"XOR", "OR", "AND"},
-                    success_path_back[bit], problems_back[bit]) /*||
-                !walk_back_from_z(
-                    connection_by_output(z), x, 0, 2, {"XOR", "XOR"},
-                    success_path_back[bit], problems_back[bit])*/
-            )
+                    success_path_back[bit], problems_back[bit]))
             {
                 problem_bits.set(bit);
 
                 for (auto *pc : problems_back[bit])
                     problem_outputs_per_bit[bit][pc->output]++;
             }
-
-            total_success_outputs += success_outputs_per_bit[bit].size();
         }
 
         if (verbose)
@@ -726,20 +669,28 @@ std::optional<uint64_t> Answer(std::ifstream &file)
 
                 if (success_path_back[bit].size())
                 {
-                    DPRINTX_ENDL(bit << "< " << print_problems(success_path_back[bit]));
+                    DPRINTX_ENDL(
+                        bit << "< "
+                            << print_problems(success_path_back[bit]));
                 }
                 else if (problems_back[bit].size())
                 {
-                    DPRINTX_ENDL(bit << "< " << print_problems(problems_back[bit]));
+                    DPRINTX_ENDL(
+                        bit << "< "
+                            << print_problems(problems_back[bit]));
                 }
 
                 if (problems[bit].size())
                 {
-                    DPRINTX_ENDL(bit << "> " << print_problems(problems[bit]));
+                    DPRINTX_ENDL(
+                        bit << "> "
+                            << print_problems(problems[bit]));
                 }
                 else if (success_path[bit].size())
                 {
-                    DPRINTX_ENDL(bit << "> " << print_problems(success_path[bit]));
+                    DPRINTX_ENDL(
+                        bit << "> "
+                            << print_problems(success_path[bit]));
                 }
             }
         }
@@ -763,48 +714,70 @@ std::optional<uint64_t> Answer(std::ifstream &file)
                 DCHECK(false);
         }
 
-        return total_success_outputs;
+        return problem_bits;
     };
 
     find_problems(0, msb(result_bits));
+    std::map<int, std::vector<std::string>> bits_names_to_fix;
+    std::vector<SwapPair> fixes;
 
-    // DPRINTX_ENDL(problem_output_names.size() << " problem output names");
+    for (int bit = 0; bit < msb(result_bits); bit++)
+    {
+        if (!success_path_back[bit].size() &&
+                problems_back[bit].size() == 1 ||
+            problems[bit].size() == 1)
+        {
+            for (auto it : problem_outputs_per_bit[bit])
+                bits_names_to_fix[bit].push_back(it.first);
+        }
+    }
 
-    // DPRINTX_ENDL(problem_xor_names.size()
-    //              << " XOR: " << print_names(problem_xor_names));
-    // DPRINTX_ENDL(problem_and_names.size()
-    //              << " AND: " << print_names(problem_and_names));
-    // DPRINTX_ENDL(problem_or_names.size()
-    //              << " OR: " << print_names(problem_or_names));
+    for (auto it : bits_names_to_fix)
+    {
+        const int &bit = it.first;
+        const auto &names = it.second;
+
+        for (int i1 = 0; i1 < names.size() - 1; i1++)
+        {
+            for (int i2 = i1 + 1; i2 < names.size(); i2++)
+            {
+                Swapped swapped(connection_by_output(names[i1]),
+                                connection_by_output(names[i2]),
+                                &all_connections);
+
+                auto error_bits = find_problems(bit, bit + 1);
+                if (!error_bits.test(bit))
+                    fixes.push_back(swapped.gates);
+
+                DPRINTX_ENDL("s: " << error_bits
+                                   << " " << names[i1]
+                                   << " <-> " << names[i2]
+                                   << " " << bit << " bit");
+            }
+        }
+    }
+
+#ifdef DPRINT_ON
+    DCHECK(fixes.size() == 4);
+    Swapped fix1(fixes[0], &all_connections);
+    Swapped fix2(fixes[1], &all_connections);
+    Swapped fix3(fixes[2], &all_connections);
+    Swapped fix4(fixes[3], &all_connections);
+    auto error_bits = addition_system(true);
+    DPRINTX_ENDL("f: " << error_bits);
+    DCHECK(error_bits.count() == 0);
+#endif
 
     std::priority_queue<std::string,
                         std::vector<std::string>,
                         std::greater<std::string>>
         names_queue;
 
-/*
-    NOTE: Manual adhoc search from here. This is not a general solution.
-*/
-#ifdef ManualSwap
-    ManualSwap(qdg_z12, "qdg", "z12");
-    ManualSwap(vvf_z19, "vvf", "z19");
-    ManualSwap(dck_fgn, "dck", "fgn"); // bit 23
-    ManualSwap(nvh_z37, "nvh", "z37");
-
-    auto error_bits = addition_system(true);
-    DPRINTX(debug_print());
-
-    for (int bit = 0; bit < msb(result_bits); bit++)
+    for (const auto &gates : fixes)
     {
-        if (error_bits.test(bit))
-        {
-            DPRINTX(bit << " ");
-        }
+        names_queue.push(gates.first->output);
+        names_queue.push(gates.second->output);
     }
-
-    DPRINTX_ENDL("(" << error_bits.count() << " bits)");
-    find_problems(0, msb(result_bits), false, true, false);
-#endif
 
     while (!names_queue.empty())
     {
