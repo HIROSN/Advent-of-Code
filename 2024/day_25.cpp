@@ -5,12 +5,12 @@
 
 std::optional<uint64_t> Answer(std::ifstream &file)
 {
-    using Schematic = std::vector<std::string>;
+    using Schematic = std::vector<int>;
     using Schematics = std::vector<Schematic>;
 
     Schematics locks, keys;
     std::optional<bool> is_lock;
-    Schematic schematic;
+    Schematic schematic(5, -1);
     std::string line;
 
     while (std::getline(file, line))
@@ -23,13 +23,15 @@ std::optional<uint64_t> Answer(std::ifstream &file)
                 keys.push_back(schematic);
 
             is_lock.reset();
-            schematic.clear();
+            schematic = Schematic(5, -1);
             continue;
         }
 
         if (!is_lock.has_value())
             is_lock = line == "#####";
-        schematic.push_back(line);
+
+        for (int i = 0; i < schematic.size(); i++)
+            schematic[i] += line[i] == '#';
     }
 
     if (is_lock.value())
@@ -37,7 +39,10 @@ std::optional<uint64_t> Answer(std::ifstream &file)
     else
         keys.push_back(schematic);
 
+    DPRINT(locks);
+    DPRINT(keys);
     DPRINT2(locks.size(), keys.size());
+    DPRINT_ENDL();
     int pairs_fit = 0;
 
     for (const auto &lock : locks)
@@ -45,9 +50,8 @@ std::optional<uint64_t> Answer(std::ifstream &file)
         for (const auto &key : keys)
         {
             bool overlap = false;
-            for (int y = 0; !overlap && y < lock.size(); y++)
-                for (int x = 0; !overlap && x < lock[y].size(); x++)
-                    overlap = lock[y][x] == '#' && key[y][x] == '#';
+            for (int i = 0; !overlap && i < lock.size(); i++)
+                overlap = lock[i] + key[i] > 5;
 
             if (!overlap)
                 pairs_fit++;
